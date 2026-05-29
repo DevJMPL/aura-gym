@@ -1,0 +1,273 @@
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Dumbbell, ArrowRight, CheckCircle2, XCircle, ArrowLeft, User as UserIcon } from 'lucide-react'
+import { useGym } from '../../contexts/GymContext'
+import { attendanceService } from '../../features/attendance/services/attendanceService'
+import { memberService } from '../../features/members/services/memberService'
+import type { Member } from '../../types/database'
+
+export function KioskPage() {
+  const navigate = useNavigate()
+  const { gym } = useGym()
+  const [code, setCode] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'warning'>('idle')
+  const [message, setMessage] = useState('')
+  const [memberName, setMemberName] = useState('')
+  const [memberPhoto, setMemberPhoto] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  
+  const [suggestions, setSuggestions] = useState<Member[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+
+  // Keep focus on the input always (for barcode scanners or quick typing)
+  useEffect(() => {
+    const focusInterval = setInterval(() => {
+      if (document.activeElement !== inputRef.current && status === 'idle' && !showSuggestions) {
+        inputRef.current?.focus()
+      }
+    }, 1000)
+    return () => clearInterval(focusInterval)
+  }, [status, showSuggestions])
+
+  // Search logic
+  useEffect(() => {
+    const search = async () => {
+      if (code.length >= 2) {
+        try {
+          const results = await memberService.searchMembers(code)
+          setSuggestions(results)
+          setShowSuggestions(true)
+        } catch (error) {
+          console.error(error)
+        }
+      } else {
+        setSuggestions([])
+        setShowSuggestions(false)
+      }
+    }
+
+    const timeoutId = setTimeout(search, 300) // debounce
+    return () => clearTimeout(timeoutId)
+  }, [code])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!code.trim()) return
+
+    setStatus('loading')
+    setMemberPhoto(null)
+    
+    try {
+      const result = await attendanceService.processCheckIn(code)
+      
+      setMemberName(result.memberName || '')
+      setMemberPhoto(result.memberPhoto || null)
+      setMessage(result.message)
+      
+      if (result.success) {
+        setStatus('success')
+      } else if (result.status === 'duplicate') {
+        setStatus('warning')
+      } else {
+        setStatus('error')
+      }
+    } catch (err) {
+      console.error(err)
+      setStatus('error')
+      setMessage('Error al verificar el código')
+    }
+
+    setCode('')
+    setSuggestions([])
+    setShowSuggestions(false)
+    
+    // Reset back to idle after 4 seconds
+    setTimeout(() => {
+      setStatus('idle')
+      setMessage('')
+      setMemberName('')
+      setMemberPhoto(null)
+    }, 4000)
+  }
+
+  const handleSelectMember = (member: Member) => {
+    // Para procesar directamente el check-in, simulamos el evento
+    setCode(member.username || member.member_code)
+    setShowSuggestions(false)
+    
+    // Llamar directamente al check-in con el member_code o username
+    processDirectCheckIn(member.username || member.member_code)
+  }
+
+  const processDirectCheckIn = async (identifier: string) => {
+    setStatus('loading')
+    setMemberPhoto(null)
+    
+    try {
+      const result = await attendanceService.processCheckIn(identifier)
+      
+      setMemberName(result.memberName || '')
+      setMemberPhoto(result.memberPhoto || null)
+      setMessage(result.message)
+      
+      if (result.success) {
+        setStatus('success')
+      } else if (result.status === 'duplicate') {
+        setStatus('warning')
+      } else {
+        setStatus('error')
+      }
+    } catch (err) {
+      console.error(err)
+      setStatus('error')
+      setMessage('Error al verificar el código')
+    }
+
+    setCode('')
+    
+    setTimeout(() => {
+      setStatus('idle')
+      setMessage('')
+      setMemberName('')
+      setMemberPhoto(null)
+    }, 4000)
+  }
+
+  return (
+    <>
+      <button 
+        onClick={() => navigate('/dashboard')}
+        className="fixed top-6 left-6 flex items-center gap-2 px-4 py-2 bg-white/50 hover:bg-white text-slate-500 hover:text-slate-900 rounded-xl backdrop-blur-md transition-all shadow-sm z-50"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span className="font-medium text-sm">Salir del Kiosco</span>
+      </button>
+
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 sm:p-12 shadow-2xl shadow-slate-200/50 border border-white/50 transform transition-all duration-500 ease-in-out relative z-10 w-full">
+      
+      <div className="flex flex-col items-center text-center space-y-6">
+        <div className="w-20 h-20 bg-gradient-to-tr from-primary-600 to-primary-400 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-200 transform transition-transform hover:scale-105 duration-300">
+          <Dumbbell className="w-10 h-10 text-white" />
+        </div>
+        
+        <div className="space-y-2">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            {gym?.name || 'Aura Gym'}
+          </h1>
+          <p className="text-slate-500 font-medium text-lg">
+            Ingresa tu código para entrenar
+          </p>
+        </div>
+
+        <div className="w-full pt-8 pb-4 relative h-48 flex items-center justify-center">
+          {/* Default Idle State */}
+          <div className={`absolute w-full transition-all duration-500 transform ${status === 'idle' ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
+            <form onSubmit={handleSubmit} className="relative group">
+              <input
+                ref={inputRef}
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Nombre, @Username o Código"
+                className="w-full text-center text-3xl font-bold tracking-tight text-slate-800 placeholder:text-slate-300 bg-slate-50 border-2 border-slate-200 rounded-2xl py-6 px-4 outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 transition-all duration-300"
+                autoFocus
+                autoComplete="off"
+              />
+              <button 
+                type="submit"
+                disabled={!code.trim()}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:opacity-0 disabled:scale-75 transition-all duration-300"
+              >
+                <ArrowRight className="w-6 h-6" />
+              </button>
+            </form>
+            
+            {/* Autocomplete Suggestions */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-[110%] left-0 w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50">
+                <ul className="max-h-60 overflow-y-auto py-2">
+                  {suggestions.map((member) => (
+                    <li 
+                      key={member.id}
+                      onClick={() => handleSelectMember(member)}
+                      className="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center gap-4 transition-colors border-b border-slate-50 last:border-0"
+                    >
+                      {member.photo_url ? (
+                        <img src={member.photo_url} alt={member.full_name} className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                          <UserIcon className="w-5 h-5" />
+                        </div>
+                      )}
+                      <div className="flex-1 text-left">
+                        <div className="font-bold text-slate-900">{member.full_name}</div>
+                        <div className="text-sm text-slate-500 flex gap-2">
+                          {member.username && <span className="font-medium text-primary-600">@{member.username}</span>}
+                          <span>{member.member_code}</span>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Loading State */}
+          <div className={`absolute w-full flex flex-col items-center justify-center transition-all duration-500 transform ${status === 'loading' ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-8 scale-95 pointer-events-none'}`}>
+            <div className="w-16 h-16 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-slate-500 font-medium animate-pulse">Verificando acceso...</p>
+          </div>
+
+          {/* Success State */}
+          <div className={`absolute w-full flex flex-col items-center justify-center transition-all duration-500 transform ${status === 'success' ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
+            <div className="relative mb-4">
+              <div className="w-28 h-28 bg-slate-100 rounded-full flex items-center justify-center border-4 border-green-500 overflow-hidden shadow-lg shadow-green-500/30">
+                {memberPhoto ? (
+                  <img src={memberPhoto} alt={memberName} className="w-full h-full object-cover" />
+                ) : (
+                  <UserIcon className="w-12 h-12 text-slate-400" />
+                )}
+              </div>
+              <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-1 text-white border-4 border-white shadow-sm">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900">{memberName}</h2>
+            <p className="text-green-600 font-medium text-lg mt-1">{message}</p>
+          </div>
+          
+          {/* Warning State */}
+          <div className={`absolute w-full flex flex-col items-center justify-center transition-all duration-500 transform ${status === 'warning' ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
+            <div className="relative mb-4">
+              <div className="w-28 h-28 bg-slate-100 rounded-full flex items-center justify-center border-4 border-yellow-500 overflow-hidden shadow-lg shadow-yellow-500/30">
+                {memberPhoto ? (
+                  <img src={memberPhoto} alt={memberName} className="w-full h-full object-cover" />
+                ) : (
+                  <UserIcon className="w-12 h-12 text-slate-400" />
+                )}
+              </div>
+              <div className="absolute -bottom-2 -right-2 bg-yellow-500 rounded-full p-1 text-white border-4 border-white shadow-sm">
+                <Dumbbell className="w-6 h-6" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900">{memberName}</h2>
+            <p className="text-yellow-600 font-medium text-lg mt-1">{message}</p>
+          </div>
+
+          {/* Error State */}
+          <div className={`absolute w-full flex flex-col items-center justify-center transition-all duration-500 transform ${status === 'error' ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600 animate-[shake_0.5s_ease-in-out]">
+              <XCircle className="w-12 h-12" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900">Acceso Denegado</h2>
+            <p className="text-red-600 font-medium text-lg mt-1">{message}</p>
+          </div>
+        </div>
+
+        </div>
+
+      </div>
+    </>
+  )
+}
