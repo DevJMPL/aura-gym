@@ -74,7 +74,7 @@ export function KioskPage() {
     } catch (err) {
       console.error(err)
       setStatus('error')
-      setMessage('Error al verificar el código')
+      setMessage("Error al verificar el código")
     }
 
     setCode('')
@@ -120,7 +120,7 @@ export function KioskPage() {
     } catch (err) {
       console.error(err)
       setStatus('error')
-      setMessage('Error al verificar el código')
+      setMessage("Error al verificar el código")
     }
 
     setCode('')
@@ -140,22 +140,26 @@ export function KioskPage() {
         className="fixed top-6 left-6 flex items-center gap-2 px-4 py-2 bg-white/50 hover:bg-white text-slate-500 hover:text-slate-900 rounded-xl backdrop-blur-md transition-all shadow-sm z-50"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span className="font-medium text-sm">Salir del Kiosco</span>
+        <span className="font-medium text-sm">{"Salir del Kiosco"}</span>
       </button>
 
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-8 sm:p-12 shadow-2xl shadow-slate-200/50 border border-white/50 transform transition-all duration-500 ease-in-out relative z-10 w-full">
       
       <div className="flex flex-col items-center text-center space-y-6">
-        <div className="w-20 h-20 bg-gradient-to-tr from-primary-600 to-primary-400 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-200 transform transition-transform hover:scale-105 duration-300">
-          <Dumbbell className="w-10 h-10 text-white" />
+        <div className="w-20 h-20 bg-gradient-to-tr from-primary-600 to-primary-400 rounded-2xl flex items-center justify-center shadow-lg shadow-primary-200 transform transition-transform hover:scale-105 duration-300 overflow-hidden">
+          {gym?.logo_url ? (
+            <img src={gym.logo_url} alt={gym.name || "Aura Gym"} className="w-full h-full object-cover" />
+          ) : (
+            <Dumbbell className="w-10 h-10 text-white" />
+          )}
         </div>
         
         <div className="space-y-2">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            {gym?.name || 'Aura Gym'}
+            {gym?.name || "Aura Gym"}
           </h1>
           <p className="text-slate-500 font-medium text-lg">
-            Ingresa tu código para entrenar
+            {"Ingresa tu código para entrenar"}
           </p>
         </div>
 
@@ -168,7 +172,7 @@ export function KioskPage() {
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="Nombre, @Username o Código"
+                placeholder={"Nombre, @Username o Código"}
                 className="w-full text-center text-3xl font-bold tracking-tight text-slate-800 placeholder:text-slate-300 bg-slate-50 border-2 border-slate-200 rounded-2xl py-6 px-4 outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 transition-all duration-300"
                 autoFocus
                 autoComplete="off"
@@ -216,7 +220,7 @@ export function KioskPage() {
           {/* Loading State */}
           <div className={`absolute w-full flex flex-col items-center justify-center transition-all duration-500 transform ${status === 'loading' ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-8 scale-95 pointer-events-none'}`}>
             <div className="w-16 h-16 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
-            <p className="mt-4 text-slate-500 font-medium animate-pulse">Verificando acceso...</p>
+            <p className="mt-4 text-slate-500 font-medium animate-pulse">{"Verificando acceso..."}</p>
           </div>
 
           {/* Success State */}
@@ -260,7 +264,7 @@ export function KioskPage() {
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4 text-red-600 animate-[shake_0.5s_ease-in-out]">
               <XCircle className="w-12 h-12" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900">Acceso Denegado</h2>
+            <h2 className="text-2xl font-bold text-slate-900">{"Acceso Denegado"}</h2>
             <p className="text-red-600 font-medium text-lg mt-1">{message}</p>
           </div>
         </div>

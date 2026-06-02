@@ -69,7 +69,14 @@ export function MemberProfile({ member, trainingDays = [], attendanceHistory = [
 
         <div className="flex-1 space-y-4">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">{member.full_name}</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-slate-900">{member.full_name}</h2>
+              {member.username && (
+                <span className="text-lg font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-md">
+                  @{member.username}
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-3 mt-2">
               <span className="font-mono text-sm font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded">
                 {member.member_code}
@@ -101,7 +108,7 @@ export function MemberProfile({ member, trainingDays = [], attendanceHistory = [
             )}
             {trainingDays.length > 0 && (
               <div className="flex items-center text-sm text-slate-500 sm:col-span-2">
-                <span className="font-medium mr-2">Días de Entrenamiento:</span>
+                <span className="font-medium mr-2">"Días de Entrenamiento:"</span>
                 <div className="flex gap-1">
                   {trainingDays.sort((a,b) => a-b).map(d => (
                     <span key={d} className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-600">
@@ -128,14 +135,14 @@ export function MemberProfile({ member, trainingDays = [], attendanceHistory = [
                  <Flame className={`w-5 h-5 ${currentStreak > 0 ? 'text-orange-500' : 'text-slate-300'}`} />
                </div>
                <div>
-                 <p className="text-xs text-slate-500">Estado de Racha</p>
+                 <p className="text-xs text-slate-500">"Estado de Racha"</p>
                  <p className="text-sm font-medium text-slate-900">
                    {currentStreak > 0 ? 'Activo (Asistió recientemente)' : 'Sin racha'}
                  </p>
                </div>
              </div>
              <div className="text-right">
-                <p className="text-xs text-slate-500">Asistencias Totales</p>
+                <p className="text-xs text-slate-500">"Asistencias Totales"</p>
                 <p className="text-xl font-bold text-slate-900">{totalAttendances}</p>
              </div>
           </div>

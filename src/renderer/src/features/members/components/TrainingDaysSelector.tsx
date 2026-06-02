@@ -3,26 +3,44 @@ interface TrainingDaysSelectorProps {
   onChange: (days: number[]) => void
   error?: string
 }
-
-const DAYS = [
-  { id: 1, label: 'L' },
-  { id: 2, label: 'M' },
-  { id: 3, label: 'X' },
-  { id: 4, label: 'J' },
-  { id: 5, label: 'V' },
-  { id: 6, label: 'S' },
-  { id: 0, label: 'D' },
-]
-
 export function TrainingDaysSelector({ selectedDays, onChange, error }: TrainingDaysSelectorProps) {
+  const DAYS = [
+    {
+      id: 1,
+      label: 'L',
+    },
+    {
+      id: 2,
+      label: 'M',
+    },
+    {
+      id: 3,
+      label: 'X',
+    },
+    {
+      id: 4,
+      label: 'J',
+    },
+    {
+      id: 5,
+      label: 'V',
+    },
+    {
+      id: 6,
+      label: 'S',
+    },
+    {
+      id: 0,
+      label: 'D',
+    },
+  ]
   const toggleDay = (dayId: number) => {
     if (selectedDays.includes(dayId)) {
-      onChange(selectedDays.filter(d => d !== dayId))
+      onChange(selectedDays.filter((d) => d !== dayId))
     } else {
       onChange([...selectedDays, dayId])
     }
   }
-
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-slate-700">
@@ -38,9 +56,7 @@ export function TrainingDaysSelector({ selectedDays, onChange, error }: Training
               onClick={() => toggleDay(day.id)}
               className={`
                 w-10 h-10 rounded-full font-medium text-sm transition-all
-                ${isSelected 
-                  ? 'bg-primary-600 text-white shadow-md shadow-primary-200' 
-                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}
+                ${isSelected ? 'bg-primary-600 text-white shadow-md shadow-primary-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}
               `}
             >
               {day.label}

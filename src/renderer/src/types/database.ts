@@ -38,6 +38,16 @@ export interface GymSettings {
   closing_time: string | null
   business_days: string[]
   is_configured: boolean
+  // New expanded fields
+  legal_name: string | null
+  website: string | null
+  social_links: Record<string, string>
+  report_name: string | null
+  report_logo_url: string | null
+  report_footer_text: string | null
+  locale: string
+  date_format: string
+  currency_format: string
   created_at: string
   updated_at: string
 }
@@ -128,6 +138,33 @@ export interface Payment {
   // Joined fields
   member?: Member
   membership?: Membership
+}
+
+export interface UserLoginHistory {
+  id: string
+  user_id: string | null
+  user_name: string | null
+  login_at: string
+  logout_at: string | null
+  device_name: string | null
+  operating_system: string | null
+  app_version: string | null
+  ip_address: string | null
+  created_at: string
+}
+
+export interface AuditLog {
+  id: string
+  user_id: string | null
+  action: string
+  entity_type: string
+  entity_id: string | null
+  description: string | null
+  old_values: Record<string, unknown> | null
+  new_values: Record<string, unknown> | null
+  created_at: string
+  // Joined fields
+  user?: AppUser
 }
 
 // Dashboard stats returned by the get_dashboard_stats() function

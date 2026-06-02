@@ -14,8 +14,8 @@ export function MembersListPage() {
           <Users className="w-6 h-6" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Miembros</h1>
-          <p className="text-slate-500 mt-1">Gestiona los clientes de tu gimnasio</p>
+          <h1 className="text-2xl font-bold text-slate-900">{"Miembros"}</h1>
+          <p className="text-slate-500 mt-1">{"Gestiona los clientes de tu gimnasio"}</p>
         </div>
       </div>
 
@@ -27,7 +27,7 @@ export function MembersListPage() {
       {error && (
         <AlertBanner 
           type="error" 
-          message="Hubo un error al cargar los miembros. Por favor, intenta de nuevo." 
+          message={"Hubo un error al cargar los miembros. Por favor, intenta de nuevo."} 
         />
       )}
 
