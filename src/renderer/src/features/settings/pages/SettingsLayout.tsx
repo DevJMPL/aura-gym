@@ -1,13 +1,8 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { User, Dumbbell, FileText, Briefcase, History, ShieldAlert } from 'lucide-react'
+import { Dumbbell, FileText, Briefcase, History, ShieldAlert } from 'lucide-react'
 export function SettingsLayout() {
   const location = useLocation()
   const tabs = [
-    {
-      to: '/settings/profile',
-      label: 'Perfil',
-      icon: User,
-    },
     {
       to: '/settings/gym',
       label: 'Gimnasio',

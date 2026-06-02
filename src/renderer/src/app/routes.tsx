@@ -32,7 +32,7 @@ import { MembersReportPage } from '../features/reports/pages/MembersReportPage'
 
 
 import { SettingsLayout } from '../features/settings/pages/SettingsLayout'
-import { AdminProfileTab } from '../features/settings/pages/AdminProfileTab'
+import { ProfilePage } from './pages/ProfilePage'
 import { GymInfoTab } from '../features/settings/pages/GymInfoTab'
 import { GeneralSettingsTab } from '../features/settings/pages/GeneralSettingsTab'
 import { StaffPage } from './pages/StaffPage'
@@ -137,8 +137,7 @@ export function AppRoutes() {
             </AdminRoute>
           }
         >
-          <Route index element={<Navigate to="profile" replace />} />
-          <Route path="profile" element={<AdminProfileTab />} />
+          <Route index element={<Navigate to="gym" replace />} />
           <Route path="gym" element={<GymInfoTab />} />
           <Route path="general" element={<GeneralSettingsTab />} />
           <Route path="staff" element={<StaffPage />} />
@@ -148,8 +147,9 @@ export function AppRoutes() {
         
         <Route path="/developer" element={<DeveloperInfoPage />} />
         
+        <Route path="/profile" element={<ProfilePage />} />
+        
         {/* Legacy routes redirect to settings */}
-        <Route path="/profile" element={<Navigate to="/settings/profile" replace />} />
         <Route path="/staff" element={<Navigate to="/settings/staff" replace />} />
 
         {/* Default Redirect */}

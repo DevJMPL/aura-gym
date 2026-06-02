@@ -56,6 +56,13 @@ export const membershipService = {
     const startDate = new Date(formData.start_date + 'T12:00:00')
     const endDate = addDays(startDate, durationDays)
 
+    // Ensure we don't have overlapping active memberships by expiring the old ones
+    await supabase
+      .from('memberships')
+      .update({ status: 'expired' })
+      .eq('member_id', formData.member_id)
+      .eq('status', 'active')
+
     const { data, error } = await supabase
       .from('memberships')
       .insert({
