@@ -41,4 +41,18 @@ export const storageService = {
     const { error } = await supabase.storage.from('avatars').remove([path])
     if (error) throw error
   },
+
+  async uploadProductImage(file: File | Blob, path: string): Promise<string> {
+    const contentType = file.type || 'image/jpeg'
+
+    const { error } = await supabase.storage.from('product-images').upload(path, file, {
+      upsert: true,
+      contentType,
+    })
+
+    if (error) throw error
+
+    const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+    return data.publicUrl
+  },
 }
