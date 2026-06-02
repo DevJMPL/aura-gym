@@ -63,7 +63,7 @@ export function MainLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-visible">
           {navItems
             .filter((item) => !item.adminOnly || !appUser || appUser.role === 'admin')
             .map((item) => (
@@ -95,7 +95,7 @@ export function MainLayout() {
         {/* User info */}
         <div className="p-4 border-t border-slate-100 bg-white/50">
           <NavLink
-            to="/settings/profile"
+            to="/profile"
             className={({ isActive }) => 
               `flex items-center gap-3 transition-all duration-300 rounded-xl hover:bg-slate-50 cursor-pointer border border-transparent ${
                 isActive ? 'bg-primary-50 border-primary-100' : ''

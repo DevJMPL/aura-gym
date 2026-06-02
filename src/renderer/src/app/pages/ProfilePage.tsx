@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { User, Mail, ShieldCheck, Camera, Calendar, Clock } from 'lucide-react'
-import { useAuth } from '../../../contexts/AuthContext'
-import { Card, Button, Badge, PhotoCapture } from '../../../components/ui'
-import { settingsService } from '../services/settings.service'
+import { User, Mail, ShieldCheck, Camera, Calendar, Clock, LogOut } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
+import { Card, Button, Badge, PhotoCapture } from '../../components/ui'
+import { settingsService } from '../../features/settings/services/settings.service'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
-export function AdminProfileTab() {
-  const { appUser, user, refreshUser } = useAuth()
+export function ProfilePage() {
+  const { appUser, user, refreshUser, signOut } = useAuth()
   const [isCapturing, setIsCapturing] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -48,9 +48,15 @@ export function AdminProfileTab() {
 
   return (
     <div className="w-full space-y-6 animate-fade-in">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">{"Perfil del Administrador"}</h2>
-        <p className="text-slate-500">{"Gestiona tu información personal y credenciales de acceso."}</p>
+      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">{"Mi Perfil"}</h2>
+          <p className="text-slate-500">{"Gestiona tu información personal y credenciales de acceso."}</p>
+        </div>
+        <Button variant="danger" onClick={signOut} className="shrink-0 gap-2">
+          <LogOut className="w-4 h-4" />
+          {"Cerrar Sesión"}
+        </Button>
       </div>
 
       <Card className="p-8 shadow-sm">
