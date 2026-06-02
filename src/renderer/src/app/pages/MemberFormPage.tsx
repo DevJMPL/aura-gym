@@ -10,26 +10,14 @@ import { Button, Input, Select, Card, AlertBanner, PhotoCapture } from '../../co
 import { storageService } from '../../lib/supabase/storageService'
 import type { MemberFormData } from '../../types/database'
 
-const memberSchema = z.object({
-  full_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  username: z.string().optional(),
-  email: z.string().email('Email inválido').or(z.literal('')),
-  phone: z.string().optional(),
-  date_of_birth: z.string().optional(),
-  notes: z.string().optional(),
-  status: z.enum(['active', 'inactive', 'suspended', 'expired'] as const),
-})
-
-type MemberFormValues = z.infer<typeof memberSchema>
-
-const STATUS_OPTIONS = [
-  { value: 'active', label: 'Activo' },
-  { value: 'inactive', label: 'Inactivo' },
-  { value: 'suspended', label: 'Suspendido' },
-]
-
 export function MemberFormPage() {
   const { id } = useParams()
+  const STATUS_OPTIONS = [
+    { value: 'active', label: "Activo" },
+    { value: 'inactive', label: "Inactivo" },
+    { value: 'suspended', label: "Suspendido" },
+  ]
+
   const isEditing = Boolean(id && id !== 'new')
   const navigate = useNavigate()
   
@@ -38,6 +26,18 @@ export function MemberFormPage() {
   const [isCapturing, setIsCapturing] = useState(false)
   const [base64Photo, setBase64Photo] = useState<string | null>(null)
   const [existingPhoto, setExistingPhoto] = useState<string | null>(null)
+
+  const memberSchema = z.object({
+    full_name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+    username: z.string().optional(),
+    email: z.string().email("Email inválido").or(z.literal('')),
+    phone: z.string().optional(),
+    date_of_birth: z.string().optional(),
+    notes: z.string().optional(),
+    status: z.enum(['active', 'inactive', 'suspended', 'expired'] as const),
+  })
+
+  type MemberFormValues = z.infer<typeof memberSchema>
 
   const {
     register,
@@ -74,7 +74,7 @@ export function MemberFormPage() {
         setExistingPhoto(member.photo_url || null)
         setTrainingDays(days)
       }).catch(err => {
-        setError('Error al cargar el miembro: ' + err.message)
+        setError(`${"Error al cargar el miembro:"} ${err.message}`)
       })
     }
   }, [id, isEditing, reset])
@@ -113,7 +113,11 @@ export function MemberFormPage() {
       
       navigate(`/members/${memberId}`, { replace: true })
     } catch (err: any) {
-      setError(err.message || 'Error al guardar el miembro')
+      if (err.message && err.message.includes('members_username_key')) {
+        setError("Ese @Username ya está en uso. Por favor, elige uno diferente.")
+      } else {
+        setError(err.message || "Error al guardar el miembro")
+      }
     }
   }
 
@@ -128,10 +132,10 @@ export function MemberFormPage() {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            {isEditing ? 'Editar Miembro' : 'Nuevo Miembro'}
+            {isEditing ? "Editar Miembro" : "Nuevo Miembro"}
           </h1>
           <p className="text-slate-500 mt-1">
-            {isEditing ? 'Actualiza los datos del cliente' : 'Registra un nuevo cliente en el gimnasio'}
+            {isEditing ? "Actualiza los datos del cliente" : "Registra un nuevo cliente en el gimnasio"}
           </p>
         </div>
       </div>
@@ -161,33 +165,33 @@ export function MemberFormPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label="Nombre Completo *"
+              label={"Nombre Completo *"}
               error={errors.full_name?.message}
               {...register('full_name')}
             />
             
             <Input
-              label="@Username (opcional)"
+              label={"@Username (opcional)"}
               error={errors.username?.message}
               placeholder="Ej: juanchin99"
               {...register('username')}
             />
             
             <Input
-              label="Correo Electrónico"
+              label={"Correo Electrónico"}
               type="email"
               error={errors.email?.message}
               {...register('email')}
             />
             
             <Input
-              label="Teléfono"
+              label={"Teléfono"}
               error={errors.phone?.message}
               {...register('phone')}
             />
             
             <Input
-              label="Fecha de Nacimiento"
+              label={"Fecha de Nacimiento"}
               type="date"
               error={errors.date_of_birth?.message}
               {...register('date_of_birth')}
@@ -199,7 +203,7 @@ export function MemberFormPage() {
                 control={control}
                 render={({ field }) => (
                   <Select
-                    label="Estado"
+                    label={"Estado"}
                     options={STATUS_OPTIONS}
                     error={errors.status?.message}
                     {...field}
@@ -217,7 +221,7 @@ export function MemberFormPage() {
             
             <div className="md:col-span-2">
               <Input
-                label="Notas Adicionales"
+                label={"Notas Adicionales"}
                 error={errors.notes?.message}
                 {...register('notes')}
               />
@@ -226,10 +230,10 @@ export function MemberFormPage() {
           
           <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
             <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-              Cancelar
+              {"Cancelar"}
             </Button>
             <Button type="submit" isLoading={isSubmitting} icon={<Save className="w-4 h-4" />}>
-              Guardar Miembro
+              {"Guardar Miembro"}
             </Button>
           </div>
         </form>

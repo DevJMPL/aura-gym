@@ -26,6 +26,9 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   if (!isOpen) return null
 
+  const defaultConfirmLabel = confirmLabel === 'Confirmar' ? "Confirmar" : confirmLabel
+  const defaultCancelLabel = cancelLabel === 'Cancelar' ? "Cancelar" : cancelLabel
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
@@ -51,10 +54,10 @@ export function ConfirmDialog({
         </div>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
-            {cancelLabel}
+            {defaultCancelLabel}
           </Button>
           <Button variant="danger" onClick={onConfirm} isLoading={isLoading}>
-            {confirmLabel}
+            {defaultConfirmLabel}
           </Button>
         </div>
       </div>

@@ -32,7 +32,7 @@ export function StaffPage() {
       await loadStaff()
     } catch (error) {
       console.error('Error toggling status:', error)
-      alert('Error al cambiar el estado del empleado')
+      alert("Error al cambiar el estado del empleado")
     }
   }
 
@@ -43,15 +43,15 @@ export function StaffPage() {
   )
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
+    <div className="space-y-6 animate-fade-in w-full">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary-100 text-primary-700 rounded-lg">
             <Briefcase className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Personal</h1>
-            <p className="text-slate-500 mt-1">Gestiona los empleados de tu gimnasio</p>
+            <h2 className="text-2xl font-bold text-slate-900">{"Personal"}</h2>
+            <p className="text-slate-500 mt-1">{"Gestiona los empleados de tu gimnasio."}</p>
           </div>
         </div>
         <button
@@ -59,7 +59,7 @@ export function StaffPage() {
           className="flex items-center gap-2 bg-primary-600 text-white px-4 py-2.5 rounded-xl hover:bg-primary-700 transition-all font-medium text-sm shadow-sm hover:shadow shadow-primary-500/20"
         >
           <Plus className="w-4 h-4" />
-          Nuevo Empleado
+          {"Nuevo Empleado"}
         </button>
       </div>
 
@@ -71,7 +71,7 @@ export function StaffPage() {
               <Briefcase className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Empleados</p>
+              <p className="text-sm font-medium text-slate-500">{"Total Empleados"}</p>
               <p className="text-xl font-bold text-slate-900">{staff.length}</p>
             </div>
           </div>
@@ -83,7 +83,7 @@ export function StaffPage() {
           </div>
           <input
             type="text"
-            placeholder="Buscar por nombre o email..."
+            placeholder={"Buscar por nombre o email..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-primary-500 focus:border-primary-500 bg-slate-50/50"
@@ -94,24 +94,24 @@ export function StaffPage() {
       {/* Staff List */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-center text-slate-500">Cargando empleados...</div>
+          <div className="p-8 text-center text-slate-500">{"Cargando empleados..."}</div>
         ) : filteredStaff.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
               <Briefcase className="w-8 h-8 text-slate-300" />
             </div>
-            <h3 className="text-lg font-medium text-slate-900 mb-1">No hay empleados</h3>
+            <h3 className="text-lg font-medium text-slate-900 mb-1">{"No hay empleados"}</h3>
             <p className="text-slate-500 text-sm max-w-sm mb-6">
               {searchTerm
-                ? 'No se encontraron empleados que coincidan con tu búsqueda.'
-                : 'Aún no has registrado ningún empleado en tu gimnasio.'}
+                ? "No se encontraron empleados que coincidan con tu búsqueda."
+                : "Aún no has registrado ningún empleado en tu gimnasio."}
             </p>
             {!searchTerm && (
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="text-primary-600 font-medium text-sm hover:text-primary-700 bg-primary-50 px-4 py-2 rounded-lg"
               >
-                Añadir tu primer empleado
+                {"Añadir tu primer empleado"}
               </button>
             )}
           </div>
@@ -120,11 +120,11 @@ export function StaffPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-xs uppercase tracking-wider text-slate-500 font-semibold">
-                  <th className="p-4 pl-6">Empleado</th>
-                  <th className="p-4">Contacto</th>
-                  <th className="p-4">Rol</th>
-                  <th className="p-4">Estado</th>
-                  <th className="p-4 text-right pr-6">Acciones</th>
+                  <th className="p-4 pl-6">{"Empleado"}</th>
+                  <th className="p-4">{"Contacto"}</th>
+                  <th className="p-4">{"Rol"}</th>
+                  <th className="p-4">{"Estado"}</th>
+                  <th className="p-4 text-right pr-6">{"Acciones"}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -139,7 +139,7 @@ export function StaffPage() {
                           <p className="text-sm font-medium text-slate-900">{user.full_name}</p>
                           <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500">
                             <Calendar className="w-3 h-3" />
-                            <span>Agregado {new Date(user.created_at).toLocaleDateString()}</span>
+                            <span>{"Agregado"} {new Date(user.created_at).toLocaleDateString()}</span>
                           </div>
                         </div>
                       </div>
@@ -153,7 +153,7 @@ export function StaffPage() {
                     <td className="p-4">
                       <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 text-purple-700 text-xs font-medium border border-purple-100">
                         <Shield className="w-3.5 h-3.5" />
-                        Staff
+                        {"Staff"}
                       </div>
                     </td>
                     <td className="p-4">
@@ -169,7 +169,7 @@ export function StaffPage() {
                             user.is_active ? 'bg-emerald-500' : 'bg-slate-400'
                           }`}
                         ></span>
-                        {user.is_active ? 'Activo' : 'Inactivo'}
+                        {user.is_active ? "Activo" : "Inactivo"}
                       </span>
                     </td>
                     <td className="p-4 pr-6 text-right">
@@ -182,7 +182,7 @@ export function StaffPage() {
                               : 'text-emerald-600 hover:bg-emerald-50'
                           }`}
                         >
-                          {user.is_active ? 'Desactivar' : 'Activar'}
+                          {user.is_active ? "Desactivar" : "Activar"}
                         </button>
                       </div>
                     </td>

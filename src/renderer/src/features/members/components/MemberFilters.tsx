@@ -22,7 +22,7 @@ export function MemberFilters({ searchQuery, onSearchChange }: MemberFiltersProp
       <div className="w-full sm:w-auto">
         <Link to="/members/new" className="w-full sm:w-auto">
           <Button className="w-full sm:w-auto" icon={<Plus className="w-4 h-4" />}>
-            Nuevo Miembro
+            {"Nuevo Miembro"}
           </Button>
         </Link>
       </div>

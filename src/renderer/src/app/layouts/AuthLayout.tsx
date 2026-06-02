@@ -17,7 +17,7 @@ export function AuthLayout() {
             <Dumbbell className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Aura</h1>
-          <p className="text-slate-500 font-medium text-sm mt-2">Gym Management System</p>
+          <p className="text-slate-500 font-medium text-sm mt-2">{"Gym Management"}</p>
         </div>
 
         {/* Content */}
