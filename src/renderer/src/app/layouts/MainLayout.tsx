@@ -6,31 +6,30 @@ import {
   CreditCard,
   CalendarCheck,
   Settings,
-  Dumbbell,
   ScanLine,
   BarChart3,
   ChevronLeft,
   ChevronRight,
-  Briefcase,
+  Info,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useGym } from '../../contexts/GymContext'
+import logoImage from '../../assets/logo.jpg'
 
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/members', icon: Users, label: 'Miembros' },
-  { to: '/plans', icon: CreditCard, label: 'Planes' },
-  { to: '/attendance', icon: CalendarCheck, label: 'Asistencia' },
-  { to: '/kiosk', icon: ScanLine, label: 'Kiosco' },
-  { to: '/reports', icon: BarChart3, label: 'Reportes' },
-  { to: '/staff', icon: Briefcase, label: 'Personal', adminOnly: true },
-  { to: '/settings', icon: Settings, label: 'Configuración' },
+const getNavItems = () => [
+  { to: '/dashboard', icon: LayoutDashboard, label: "Dashboard" },
+  { to: '/members', icon: Users, label: "Miembros" },
+  { to: '/plans', icon: CreditCard, label: "Planes" },
+  { to: '/attendance', icon: CalendarCheck, label: "Asistencia" },
+  { to: '/kiosk', icon: ScanLine, label: "Kiosco" },
+  { to: '/reports', icon: BarChart3, label: "Reportes", adminOnly: true },
+  { to: '/settings', icon: Settings, label: "Configuración", adminOnly: true },
+  { to: '/developer', icon: Info, label: "Soporte" },
 ]
 
 export function MainLayout() {
   const { appUser } = useAuth()
-  const { gym } = useGym()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const navItems = getNavItems()
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 relative">
@@ -52,19 +51,19 @@ export function MainLayout() {
 
         {/* Logo / Gym Name */}
         <div className={`px-4 py-6 border-b border-slate-100 flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary-600 to-primary-400 flex shrink-0 items-center justify-center shadow-md shadow-primary-200 transform transition-transform hover:scale-105 duration-300">
-            <Dumbbell className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-900 to-slate-800 flex shrink-0 items-center justify-center shadow-md shadow-slate-300 transform transition-transform hover:scale-105 duration-300 overflow-hidden">
+            <img src={logoImage} alt="Aura Logo" className="w-full h-full object-cover" />
           </div>
           {!isCollapsed && (
             <div className="min-w-0 animate-fade-in">
-              <h1 className="text-slate-900 font-extrabold text-lg truncate tracking-tight">{gym?.name || 'Aura'}</h1>
-              <p className="text-slate-500 text-xs font-medium truncate">Gym Management</p>
+              <h1 className="text-slate-900 font-extrabold text-lg truncate tracking-tight">Aura</h1>
+              <p className="text-slate-500 text-xs font-medium truncate">{"Gym Management"}</p>
             </div>
           )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-visible">
           {navItems
             .filter((item) => !item.adminOnly || !appUser || appUser.role === 'admin')
             .map((item) => (
@@ -103,15 +102,19 @@ export function MainLayout() {
               } ${isCollapsed ? 'justify-center flex-col p-2' : 'p-2'}`
             }
           >
-            <div className="w-10 h-10 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-primary-600 text-sm font-bold border border-slate-200 shadow-inner">
-              {appUser?.full_name?.[0]?.toUpperCase() || 'A'}
+            <div className="w-10 h-10 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-primary-600 text-sm font-bold border border-slate-200 shadow-inner overflow-hidden">
+              {appUser?.photo_url ? (
+                <img src={appUser.photo_url} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                appUser?.full_name?.[0]?.toUpperCase() || 'A'
+              )}
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0 animate-fade-in">
                 <p className="text-slate-900 text-sm font-bold truncate group-hover:text-primary-600 transition-colors">
-                  {appUser?.full_name || 'Admin'}
+                  {appUser?.full_name || 'Usuario'}
                 </p>
-                <p className="text-slate-500 text-xs font-medium capitalize">{appUser?.role || 'admin'}</p>
+                <p className="text-slate-500 text-xs font-medium capitalize">{appUser?.role || 'staff'}</p>
               </div>
             )}
           </NavLink>

@@ -11,7 +11,7 @@ interface RecentActivityProps {
 export function RecentActivity({ records, isLoading }: RecentActivityProps) {
   if (isLoading) {
     return (
-      <Card title="Actividad Reciente">
+      <Card title={"Actividad Reciente"}>
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex gap-4">
@@ -30,15 +30,15 @@ export function RecentActivity({ records, isLoading }: RecentActivityProps) {
   return (
     <Card padding="none" className="overflow-hidden">
       <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 className="font-semibold text-slate-900">Actividad Reciente</h3>
-        <Badge variant="success" dot>{records.length} hoy</Badge>
+        <h3 className="font-semibold text-slate-900">{"Actividad Reciente"}</h3>
+        <Badge variant="success" dot>{records.length} {"hoy"}</Badge>
       </div>
       
       {records.length === 0 ? (
         <div className="p-6">
           <EmptyState 
-            title="Sin actividad" 
-            description="Nadie ha registrado asistencia hoy todavía." 
+            title={"Sin actividad"} 
+            description={"Nadie ha registrado asistencia hoy todavía."} 
             icon={<CalendarCheck className="w-8 h-8 text-slate-400" />}
           />
         </div>
@@ -51,7 +51,7 @@ export function RecentActivity({ records, isLoading }: RecentActivityProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-slate-900 truncate">
-                  {record.member?.full_name || 'Miembro desconocido'}
+                  {record.member?.full_name || "Miembro desconocido"}
                 </p>
                 <p className="text-xs text-slate-500">
                   {record.member?.member_code || '---'}
@@ -62,7 +62,7 @@ export function RecentActivity({ records, isLoading }: RecentActivityProps) {
                   {formatRelative(record.check_in_at)}
                 </p>
                 <Badge variant={record.check_in_method === 'kiosk' ? 'info' : 'default'} size="sm">
-                  {record.check_in_method === 'kiosk' ? 'Kiosco' : 'Manual'}
+                  {record.check_in_method === 'kiosk' ? "Kiosco" : "Manual"}
                 </Badge>
               </div>
             </div>

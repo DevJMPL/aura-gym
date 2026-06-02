@@ -42,7 +42,7 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
       onSuccess()
       onClose()
     } catch (err: any) {
-      setError(err.message || 'Error al crear el empleado')
+      setError(err.message || "Error al crear el empleado")
     } finally {
       setIsSubmitting(false)
     }
@@ -57,8 +57,8 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Nuevo Empleado</h2>
-              <p className="text-sm text-slate-500">Crear cuenta para staff</p>
+              <h2 className="text-lg font-bold text-slate-900">{"Nuevo Empleado"}</h2>
+              <p className="text-sm text-slate-500">{"Crear cuenta para staff"}</p>
             </div>
           </div>
           <button
@@ -99,7 +99,7 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
           <form id="staff-form" onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Nombre Completo
+                {"Nombre Completo"}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -111,14 +111,14 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   className="block w-full pl-10 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400"
-                  placeholder="Ej. Juan Pérez"
+                  placeholder={"Ej. Juan Pérez"}
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Correo Electrónico
+                {"Correo Electrónico"}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -130,13 +130,13 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="block w-full pl-10 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400"
-                  placeholder="juan@gimnasio.com"
+                  placeholder={"juan@gimnasio.com"}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Contraseña</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">{"Contraseña"}</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-slate-400" />
@@ -148,7 +148,7 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="block w-full pl-10 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={"Mínimo 6 caracteres"}
                 />
               </div>
             </div>
@@ -161,7 +161,7 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
             onClick={onClose}
             className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
-            Cancelar
+            {"Cancelar"}
           </button>
           <button
             type="submit"
@@ -186,10 +186,10 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Creando...
+                {"Creando..."}
               </>
             ) : (
-              'Crear Empleado'
+              "Crear Empleado"
             )}
           </button>
         </div>

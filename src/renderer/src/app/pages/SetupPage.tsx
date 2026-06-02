@@ -14,9 +14,9 @@ export function SetupPage() {
             <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 border border-white/20 shadow-inner">
               <Dumbbell className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white">Configura tu Gimnasio</h1>
+            <h1 className="text-2xl font-bold text-white">{"Configura tu Gimnasio"}</h1>
             <p className="text-primary-100 text-sm mt-2 max-w-sm">
-              Para comenzar a usar Aura, necesitamos algunos datos básicos sobre tu negocio.
+              {"Para comenzar a usar Aura, necesitamos algunos datos básicos sobre tu negocio."}
             </p>
           </div>
         </div>

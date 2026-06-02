@@ -30,8 +30,8 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
       console.error('Error accessing camera:', err)
       setError(
         err.name === 'NotAllowedError'
-          ? 'Acceso a la cámara denegado. Por favor permite el acceso en tu navegador o sistema.'
-          : 'No se pudo encontrar o acceder a una cámara.'
+          ? "Acceso a la cámara denegado. Por favor permite el acceso en tu navegador o sistema."
+          : "No se pudo encontrar o acceder a una cámara."
       )
     } finally {
       setIsLoading(false)
@@ -105,7 +105,7 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
         <div className="absolute top-0 inset-x-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
           <div className="flex items-center gap-2 text-white drop-shadow-md">
             <Camera className="w-5 h-5" />
-            <span className="font-semibold text-sm">Tomar Fotografía</span>
+            <span className="font-semibold text-sm">{"Tomar Fotografía"}</span>
           </div>
           <button
             onClick={handleClose}
@@ -127,13 +127,13 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
                 onClick={startCamera}
                 className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors"
               >
-                Reintentar
+                {"Reintentar"}
               </button>
             </div>
           ) : isLoading ? (
             <div className="flex flex-col items-center gap-3">
               <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-white/60 text-sm font-medium">Iniciando cámara...</p>
+              <p className="text-white/60 text-sm font-medium">{"Iniciando cámara..."}</p>
             </div>
           ) : capturedImage ? (
             <img 
@@ -171,14 +171,14 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
                 className="flex items-center gap-2 px-6 py-3 text-slate-600 font-medium bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all"
               >
                 <RefreshCw className="w-5 h-5" />
-                <span>Tomar otra vez</span>
+                <span>{"Tomar otra vez"}</span>
               </button>
               <button
                 onClick={handleConfirm}
                 className="flex items-center gap-2 px-8 py-3 text-white font-bold bg-primary-600 hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-600/30 rounded-2xl transition-all transform hover:scale-105"
               >
                 <Check className="w-5 h-5" />
-                <span>Usar esta foto</span>
+                <span>{"Usar esta foto"}</span>
               </button>
             </>
           ) : (

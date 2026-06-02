@@ -4,6 +4,7 @@ import { AuthLayout } from './layouts/AuthLayout'
 import { KioskLayout } from './layouts/KioskLayout'
 import { useAuth } from '../contexts/AuthContext'
 import { LoadingState } from '../components/ui'
+import { AccessDenied } from '../components/ui/AccessDenied'
 
 import { LoginPage } from './pages/LoginPage'
 import { SetupPage } from './pages/SetupPage'
@@ -16,16 +17,28 @@ import { MemberFormPage } from './pages/MemberFormPage'
 import { MemberDetailPage } from './pages/MemberDetailPage'
 
 import { KioskPage } from './pages/KioskPage'
-import { ProfilePage } from './pages/ProfilePage'
-import { StaffPage } from './pages/StaffPage'
 
 import { PlansPage } from './pages/PlansPage'
 
 import { AttendanceLogPage } from './pages/AttendanceLogPage'
 
-// Placeholder imports for pages
-const ReportsPage = () => <div>Reports Page</div>
-const SettingsPage = () => <div>Settings Page</div>
+import { ReportsLayout } from '../features/reports/pages/ReportsLayout'
+import { ReportsDashboardPage } from '../features/reports/pages/ReportsDashboardPage'
+import { FinancialReportPage } from '../features/reports/pages/FinancialReportPage'
+import { AttendanceReportPage } from '../features/reports/pages/AttendanceReportPage'
+import { MembershipReportPage } from '../features/reports/pages/MembershipReportPage'
+import { MembersReportPage } from '../features/reports/pages/MembersReportPage'
+
+
+
+import { SettingsLayout } from '../features/settings/pages/SettingsLayout'
+import { ProfilePage } from './pages/ProfilePage'
+import { GymInfoTab } from '../features/settings/pages/GymInfoTab'
+import { GeneralSettingsTab } from '../features/settings/pages/GeneralSettingsTab'
+import { StaffPage } from './pages/StaffPage'
+import { LoginHistoryTab } from '../features/settings/pages/LoginHistoryTab'
+import { AuditLogsTab } from '../features/settings/pages/AuditLogsTab'
+import { DeveloperInfoPage } from './pages/DeveloperInfoPage'
 
 function ProtectedRoute({ children, requireSetup = true }: { children: React.ReactNode; requireSetup?: boolean }) {
   const { session, isLoading: authLoading } = useAuth()
@@ -56,7 +69,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   const { role } = useAuth()
   
   if (role !== 'admin') {
-    return <Navigate to="/dashboard" replace />
+    return <AccessDenied />
   }
   
   return <>{children}</>
@@ -106,27 +119,38 @@ export function AppRoutes() {
           path="/reports"
           element={
             <AdminRoute>
-              <ReportsPage />
+              <ReportsLayout />
             </AdminRoute>
           }
-        />
+        >
+          <Route index element={<ReportsDashboardPage />} />
+          <Route path="financial" element={<FinancialReportPage />} />
+          <Route path="attendance" element={<AttendanceReportPage />} />
+          <Route path="memberships" element={<MembershipReportPage />} />
+          <Route path="members" element={<MembersReportPage />} />
+        </Route>
         <Route
           path="/settings"
           element={
             <AdminRoute>
-              <SettingsPage />
+              <SettingsLayout />
             </AdminRoute>
           }
-        />
+        >
+          <Route index element={<Navigate to="gym" replace />} />
+          <Route path="gym" element={<GymInfoTab />} />
+          <Route path="general" element={<GeneralSettingsTab />} />
+          <Route path="staff" element={<StaffPage />} />
+          <Route path="login-history" element={<LoginHistoryTab />} />
+          <Route path="audit" element={<AuditLogsTab />} />
+        </Route>
+        
+        <Route path="/developer" element={<DeveloperInfoPage />} />
+        
         <Route path="/profile" element={<ProfilePage />} />
-        <Route
-          path="/staff"
-          element={
-            <AdminRoute>
-              <StaffPage />
-            </AdminRoute>
-          }
-        />
+        
+        {/* Legacy routes redirect to settings */}
+        <Route path="/staff" element={<Navigate to="/settings/staff" replace />} />
 
         {/* Default Redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -8,7 +8,7 @@ export function LoginPage() {
 
   // If still loading auth state, show a generic loading screen
   if (isLoading) {
-    return <LoadingState fullScreen message="Cargando..." />
+    return <LoadingState fullScreen message={"Cargando..."} />
   }
 
   // If already logged in, redirect to dashboard
@@ -19,20 +19,20 @@ export function LoginPage() {
   return (
     <div>
       <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-slate-900">Bienvenido de nuevo</h2>
-        <p className="text-slate-500 mt-1">Ingresa a tu cuenta para continuar</p>
+        <h2 className="text-2xl font-bold text-slate-900">{"Bienvenido de nuevo"}</h2>
+        <p className="text-slate-500 mt-1">{"Ingresa a tu cuenta para continuar"}</p>
       </div>
 
       <LoginForm />
 
       <div className="mt-6 text-center text-sm text-slate-500">
         <p>
-          ¿Olvidaste tu contraseña?{' '}
+          {"¿Olvidaste tu contraseña?"}{' '}
           <a
             href="#"
             className="font-medium text-primary-600 hover:text-primary-500 transition-colors"
           >
-            Recuperar aquí
+            {"Recuperar aquí"}
           </a>
         </p>
       </div>

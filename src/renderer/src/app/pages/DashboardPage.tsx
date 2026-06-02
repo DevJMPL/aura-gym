@@ -7,9 +7,8 @@ import { StatsGrid } from '../../features/dashboard/components/StatsGrid'
 import { RecentActivity } from '../../features/dashboard/components/RecentActivity'
 import { AlertsPanel } from '../../features/dashboard/components/AlertsPanel'
 import { LoadingState } from '../../components/ui'
-
 export function DashboardPage() {
-  const { gym } = useGym()
+  const {} = useGym()
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState({
     activeMembers: 0,
@@ -19,28 +18,21 @@ export function DashboardPage() {
   })
   const [recentRecords, setRecentRecords] = useState<any[]>([])
   const [expiringMemberships, setExpiringMemberships] = useState<any[]>([])
-
   useEffect(() => {
     async function loadDashboardData() {
       try {
         setIsLoading(true)
-        
-        const [
-          memberCount,
-          todayCheckins,
-          todayRecords,
-          expiring,
-        ] = await Promise.all([
+        const [memberCount, todayCheckins, todayRecords, expiring] = await Promise.all([
           memberService.getCount(),
           attendanceService.getTodayCount(),
           attendanceService.getTodayRecords(),
           membershipService.getExpiringSoon(7),
         ])
-
         setStats({
           activeMembers: memberCount.active,
           todayCheckins,
-          monthlyRevenue: 0, // Mocked for now, needs payment service sum
+          monthlyRevenue: 0,
+          // Mocked for now, needs payment service sum
           expiringSoon: expiring.length,
         })
         setRecentRecords(todayRecords)
@@ -51,19 +43,16 @@ export function DashboardPage() {
         setIsLoading(false)
       }
     }
-
     loadDashboardData()
   }, [])
-
   if (isLoading) {
-    return <LoadingState fullScreen message="Cargando panel..." />
+    return <LoadingState fullScreen message={'Cargando panel...'} />
   }
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Hola, {gym?.name || 'Administrador'}</h1>
-        <p className="text-slate-500 mt-1">Este es el resumen de tu gimnasio hoy.</p>
+        <h1 className="text-2xl font-bold text-slate-900">{'Bienvenido'}</h1>
+        <p className="text-slate-500 mt-1">{'Este es el resumen de tu gimnasio hoy.'}</p>
       </div>
 
       <StatsGrid stats={stats} />
