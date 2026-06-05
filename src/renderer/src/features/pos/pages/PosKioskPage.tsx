@@ -43,6 +43,7 @@ export function PosKioskPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDragOverCart, setIsDragOverCart] = useState(false)
+  const [isCartOpen, setIsCartOpen] = useState(false)
   const [lastAddedId, setLastAddedId] = useState<string | null>(null)
   const [dropPulse, setDropPulse] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -127,6 +128,7 @@ export function PosKioskPage() {
 
     setLastAddedId(product.id)
     setDropPulse(true)
+    setIsCartOpen(true)
     window.setTimeout(() => setLastAddedId(null), 700)
     window.setTimeout(() => setDropPulse(false), 450)
   }
@@ -189,7 +191,16 @@ export function PosKioskPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 2xl:grid-cols-[1fr_410px] gap-6 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_390px] gap-6 items-start">
+      {isCartOpen && (
+        <button
+          type="button"
+          aria-label="Cerrar carrito"
+          onClick={() => setIsCartOpen(false)}
+          className="fixed inset-0 z-30 bg-slate-950/30 backdrop-blur-sm lg:hidden"
+        />
+      )}
+
       <section className="space-y-4 min-w-0">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -272,7 +283,9 @@ export function PosKioskPage() {
         }}
         onDragLeave={() => setIsDragOverCart(false)}
         onDrop={onDropToCart}
-        className={`bg-white rounded-3xl border shadow-sm sticky top-8 overflow-hidden transition-all duration-300 ${
+        className={`fixed right-0 top-0 z-40 flex h-screen w-[min(92vw,390px)] flex-col overflow-hidden rounded-l-3xl border bg-white shadow-2xl transition-all duration-300 lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-auto lg:translate-x-0 lg:rounded-3xl lg:shadow-sm ${
+          isCartOpen ? 'translate-x-0' : 'translate-x-full'
+        } ${
           isDragOverCart || dropPulse
             ? 'border-primary-300 ring-4 ring-primary-100 scale-[1.01] shadow-lg'
             : 'border-slate-200'
@@ -283,17 +296,27 @@ export function PosKioskPage() {
             <h2 className="text-lg font-extrabold text-slate-900">Carrito</h2>
             <p className="text-xs text-slate-500">{cart.length} producto(s)</p>
           </div>
-          <div className="relative">
-            {dropPulse && (
-              <span className="absolute inset-0 rounded-full bg-primary-200 animate-ping" />
-            )}
-            <div className="relative w-11 h-11 rounded-2xl bg-primary-600 text-white flex items-center justify-center shadow-md">
-              <ShoppingBag className="w-5 h-5" />
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              {dropPulse && (
+                <span className="absolute inset-0 rounded-full bg-primary-200 animate-ping" />
+              )}
+              <div className="relative w-11 h-11 rounded-2xl bg-primary-600 text-white flex items-center justify-center shadow-md">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setIsCartOpen(false)}
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-white hover:text-slate-700 lg:hidden"
+              aria-label="Cerrar carrito"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-5 overflow-y-auto">
           <div
             className={`rounded-2xl border border-dashed p-3 transition-colors ${isDragOverCart ? 'border-primary-300 bg-primary-50' : 'border-transparent'}`}
           >
@@ -444,6 +467,22 @@ export function PosKioskPage() {
           </Button>
         </div>
       </aside>
+
+      <button
+        type="button"
+        onClick={() => setIsCartOpen(true)}
+        className="fixed bottom-5 right-5 z-20 inline-flex cursor-pointer items-center gap-3 rounded-2xl bg-primary-600 px-4 py-3 text-sm font-extrabold text-white shadow-xl shadow-primary-200 transition-all hover:-translate-y-0.5 hover:bg-primary-700 lg:hidden"
+      >
+        <span className="relative">
+          <ShoppingBag className="h-5 w-5" />
+          {cart.length > 0 && (
+            <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-extrabold text-primary-700">
+              {cart.length}
+            </span>
+          )}
+        </span>
+        Carrito
+      </button>
     </div>
   )
 }

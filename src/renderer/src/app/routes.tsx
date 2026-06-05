@@ -23,7 +23,6 @@ import { PosLayout } from '../features/pos/pages/PosLayout'
 import { PosKioskPage } from '../features/pos/pages/PosKioskPage'
 import { PosProductsPage } from '../features/pos/pages/PosProductsPage'
 import { PosSalesPage } from '../features/pos/pages/PosSalesPage'
-import { PosBalancesPage } from '../features/pos/pages/PosBalancesPage'
 
 import { AttendanceLogPage } from './pages/AttendanceLogPage'
 
@@ -129,7 +128,7 @@ export function AppRoutes() {
           <Route path="kiosk" element={<PosKioskPage />} />
           <Route path="products" element={<PosProductsPage />} />
           <Route path="sales" element={<PosSalesPage />} />
-          <Route path="balances" element={<PosBalancesPage />} />
+          <Route path="balances" element={<Navigate to="../sales" replace />} />
         </Route>
         <Route
           path="/reports"
