@@ -6,12 +6,25 @@
 export type MemberStatus = 'active' | 'expired' | 'suspended' | 'inactive'
 export type MembershipStatus = 'active' | 'expired' | 'cancelled'
 export type UserRole = 'admin' | 'staff'
-export type PlanType = 'inscription' | 'visit' | 'weekly' | 'biweekly' | 'monthly' | 'annual' | 'custom'
+export type PlanType =
+  | 'inscription'
+  | 'visit'
+  | 'weekly'
+  | 'biweekly'
+  | 'monthly'
+  | 'annual'
+  | 'custom'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other'
+export type PosCustomerType = 'member' | 'guest'
+export type PosSaleStatus = 'completed' | 'partial' | 'cancelled'
 export type CheckInMethod = 'kiosk' | 'manual' | 'member_code'
 export type AccessResult = 'allowed' | 'denied'
 export type AttendanceStatus = 'valid' | 'duplicate' | 'denied' | 'manual'
-export type DenialReason = 'expired_membership' | 'inactive_member' | 'suspended_member' | 'not_found'
+export type DenialReason =
+  | 'expired_membership'
+  | 'inactive_member'
+  | 'suspended_member'
+  | 'not_found'
 
 export interface AppUser {
   id: string
@@ -167,6 +180,80 @@ export interface AuditLog {
   user?: AppUser
 }
 
+export interface PosProduct {
+  id: string
+  sku: string | null
+  barcode: string | null
+  name: string
+  description: string | null
+  category: string | null
+  image_url: string | null
+  cost_price: number
+  sale_price: number
+  stock_quantity: number
+  low_stock_threshold: number
+  track_inventory: boolean
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface PosProductCategory {
+  id: string
+  name: string
+  description: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface PosSale {
+  id: string
+  sale_number: string
+  member_id: string | null
+  customer_name: string | null
+  customer_type: PosCustomerType
+  status: PosSaleStatus
+  total_amount: number
+  paid_amount: number
+  balance_due: number
+  tendered_amount?: number
+  change_amount?: number
+  payment_method: PaymentMethod | null
+  notes: string | null
+  sold_by: string | null
+  sold_at: string
+  created_at: string
+  updated_at: string
+  member?: Member | null
+  seller?: AppUser | null
+  items?: PosSaleItem[]
+  payments?: PosSalePayment[]
+}
+
+export interface PosSaleItem {
+  id: string
+  sale_id: string
+  product_id: string | null
+  product_name: string
+  quantity: number
+  unit_price: number
+  line_total: number
+  created_at: string
+  product?: PosProduct | null
+}
+
+export interface PosSalePayment {
+  id: string
+  sale_id: string
+  amount: number
+  payment_method: PaymentMethod
+  received_by: string | null
+  notes: string | null
+  paid_at: string
+  created_at: string
+}
+
 // Dashboard stats returned by the get_dashboard_stats() function
 export interface DashboardStats {
   total_active_members: number
@@ -238,4 +325,35 @@ export interface GymSettingsFormData {
 export interface LoginFormData {
   email: string
   password: string
+}
+
+export interface PosProductFormData {
+  sku?: string
+  barcode?: string
+  name: string
+  description?: string
+  category?: string
+  image_url?: string
+  cost_price: number
+  sale_price: number
+  stock_quantity: number
+  low_stock_threshold: number
+  track_inventory: boolean
+  is_active: boolean
+}
+
+export interface PosCartItem {
+  product: PosProduct
+  quantity: number
+}
+
+export interface PosCreateSaleData {
+  member_id?: string | null
+  customer_name?: string | null
+  customer_type: PosCustomerType
+  paid_amount: number
+  payment_method: PaymentMethod
+  notes?: string
+  items: PosCartItem[]
+  sold_by?: string | null
 }

@@ -19,6 +19,10 @@ import { MemberDetailPage } from './pages/MemberDetailPage'
 import { KioskPage } from './pages/KioskPage'
 
 import { PlansPage } from './pages/PlansPage'
+import { PosLayout } from '../features/pos/pages/PosLayout'
+import { PosKioskPage } from '../features/pos/pages/PosKioskPage'
+import { PosProductsPage } from '../features/pos/pages/PosProductsPage'
+import { PosSalesPage } from '../features/pos/pages/PosSalesPage'
 
 import { AttendanceLogPage } from './pages/AttendanceLogPage'
 
@@ -29,8 +33,6 @@ import { AttendanceReportPage } from '../features/reports/pages/AttendanceReport
 import { MembershipReportPage } from '../features/reports/pages/MembershipReportPage'
 import { MembersReportPage } from '../features/reports/pages/MembersReportPage'
 
-
-
 import { SettingsLayout } from '../features/settings/pages/SettingsLayout'
 import { ProfilePage } from './pages/ProfilePage'
 import { GymInfoTab } from '../features/settings/pages/GymInfoTab'
@@ -40,7 +42,13 @@ import { LoginHistoryTab } from '../features/settings/pages/LoginHistoryTab'
 import { AuditLogsTab } from '../features/settings/pages/AuditLogsTab'
 import { DeveloperInfoPage } from './pages/DeveloperInfoPage'
 
-function ProtectedRoute({ children, requireSetup = true }: { children: React.ReactNode; requireSetup?: boolean }) {
+function ProtectedRoute({
+  children,
+  requireSetup = true,
+}: {
+  children: React.ReactNode
+  requireSetup?: boolean
+}) {
   const { session, isLoading: authLoading } = useAuth()
   const { isConfigured, isLoading: gymLoading } = useGym()
 
@@ -67,11 +75,11 @@ function ProtectedRoute({ children, requireSetup = true }: { children: React.Rea
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { role } = useAuth()
-  
+
   if (role !== 'admin') {
     return <AccessDenied />
   }
-  
+
   return <>{children}</>
 }
 
@@ -115,6 +123,13 @@ export function AppRoutes() {
           }
         />
         <Route path="/attendance" element={<AttendanceLogPage />} />
+        <Route path="/pos" element={<PosLayout />}>
+          <Route index element={<Navigate to="kiosk" replace />} />
+          <Route path="kiosk" element={<PosKioskPage />} />
+          <Route path="products" element={<PosProductsPage />} />
+          <Route path="sales" element={<PosSalesPage />} />
+          <Route path="balances" element={<Navigate to="../sales" replace />} />
+        </Route>
         <Route
           path="/reports"
           element={
@@ -144,11 +159,11 @@ export function AppRoutes() {
           <Route path="login-history" element={<LoginHistoryTab />} />
           <Route path="audit" element={<AuditLogsTab />} />
         </Route>
-        
+
         <Route path="/developer" element={<DeveloperInfoPage />} />
-        
+
         <Route path="/profile" element={<ProfilePage />} />
-        
+
         {/* Legacy routes redirect to settings */}
         <Route path="/staff" element={<Navigate to="/settings/staff" replace />} />
 
