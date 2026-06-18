@@ -10,20 +10,28 @@ import {
 } from 'lucide-react'
 import { useGym } from '../../contexts/GymContext'
 import { useTenant } from '../../contexts/TenantContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { attendanceService } from '../../features/attendance/services/attendanceService'
 import { memberService } from '../../features/members/services/memberService'
+import { Modal, Input, Button } from '../../components/ui'
 import type { Member } from '../../types/database'
 
 export function KioskPage() {
   const navigate = useNavigate()
   const { gym } = useGym()
   const { activeTenantId } = useTenant()
+  const { user, signIn } = useAuth()
   const [code, setCode] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'warning'>('idle')
   const [message, setMessage] = useState('')
   const [memberName, setMemberName] = useState('')
   const [memberPhoto, setMemberPhoto] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const [showExitModal, setShowExitModal] = useState(false)
+  const [password, setPassword] = useState('')
+  const [exitError, setExitError] = useState('')
+  const [isExiting, setIsExiting] = useState(false)
 
   const [suggestions, setSuggestions] = useState<Member[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -118,10 +126,36 @@ export function KioskPage() {
     processCheckIn(identifier)
   }
 
+  const handleExitKiosk = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!password.trim()) return
+
+    setIsExiting(true)
+    setExitError('')
+
+    if (user?.email) {
+      const { error } = await signIn(user.email, password)
+      if (error) {
+        setExitError('Contraseña incorrecta')
+        setIsExiting(false)
+      } else {
+        setShowExitModal(false)
+        navigate('/dashboard')
+      }
+    } else {
+      setExitError('Error de usuario')
+      setIsExiting(false)
+    }
+  }
+
   return (
     <>
       <button
-        onClick={() => navigate('/dashboard')}
+        onClick={() => {
+          setPassword('')
+          setExitError('')
+          setShowExitModal(true)
+        }}
         className="fixed top-6 left-6 flex items-center gap-2 px-4 py-2 bg-white/50 hover:bg-white text-slate-500 hover:text-slate-900 rounded-xl backdrop-blur-md transition-all shadow-sm z-50"
       >
         <ArrowLeft className="w-4 h-4" />
@@ -287,6 +321,40 @@ export function KioskPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={showExitModal}
+        onClose={() => setShowExitModal(false)}
+        title="Verificación de Seguridad"
+        size="sm"
+      >
+        <form onSubmit={handleExitKiosk} className="space-y-4">
+          <p className="text-sm text-slate-600">
+            Ingresa tu contraseña para salir del modo kiosco y volver a la administración.
+          </p>
+
+          <Input
+            label="Contraseña"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Tu contraseña"
+            required
+            autoFocus
+          />
+
+          {exitError && <p className="text-sm text-red-600 font-medium">{exitError}</p>}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
+            <Button type="button" variant="ghost" onClick={() => setShowExitModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" isLoading={isExiting}>
+              Verificar y Salir
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </>
   )
 }
