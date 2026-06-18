@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, CreditCard, Calendar, Tag } from 'lucide-react'
 import { planService } from '../../plans/services/planService'
 import { membershipService } from '../services/membershipService'
+import { useTenant } from '../../../contexts/TenantContext'
 import type { MembershipPlan } from '../../../types/database'
 import { format } from 'date-fns'
 
@@ -12,7 +13,13 @@ interface AssignMembershipModalProps {
   onSuccess: () => void
 }
 
-export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: AssignMembershipModalProps) {
+export function AssignMembershipModal({
+  isOpen,
+  onClose,
+  memberId,
+  onSuccess,
+}: AssignMembershipModalProps) {
+  const { activeTenantId } = useTenant()
   const [plans, setPlans] = useState<MembershipPlan[]>([])
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [discountType, setDiscountType] = useState<'none' | 'percentage' | 'fixed'>('none')
@@ -20,21 +27,24 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'transfer'>('cash')
   const [notes, setNotes] = useState('')
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (isOpen) {
-      planService.getActive().then(setPlans).catch(err => {
-        setError('Error al cargar los planes: ' + err.message)
-      })
+    if (isOpen && activeTenantId) {
+      planService
+        .getActive(activeTenantId)
+        .then(setPlans)
+        .catch((err) => {
+          setError('Error al cargar los planes: ' + err.message)
+        })
     }
-  }, [isOpen])
+  }, [isOpen, activeTenantId])
 
   if (!isOpen) return null
 
-  const selectedPlan = plans.find(p => p.id === selectedPlanId)
+  const selectedPlan = plans.find((p) => p.id === selectedPlanId)
 
   // Calculate final price
   let finalPrice = selectedPlan?.base_price || 0
@@ -47,13 +57,14 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedPlan) return
+    if (!selectedPlan || !activeTenantId) return
 
     setError(null)
     setIsSubmitting(true)
 
     try {
       await membershipService.create(
+        activeTenantId,
         {
           member_id: memberId,
           plan_id: selectedPlan.id,
@@ -67,7 +78,7 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
         discountType,
         discountValue
       )
-      
+
       onSuccess()
       onClose()
     } catch (err: any) {
@@ -107,23 +118,22 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
           )}
 
           <form id="membership-form" onSubmit={handleSubmit} className="space-y-6">
-            
             <div className="space-y-4">
               <label className="block text-sm font-medium text-slate-700">Seleccionar Plan</label>
               <div className="grid grid-cols-1 gap-3">
                 {plans.map((plan) => (
-                  <label 
+                  <label
                     key={plan.id}
                     className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedPlanId === plan.id 
-                        ? 'border-primary-500 bg-primary-50/50' 
+                      selectedPlanId === plan.id
+                        ? 'border-primary-500 bg-primary-50/50'
                         : 'border-slate-100 hover:border-slate-200 bg-white'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <input 
-                        type="radio" 
-                        name="plan" 
+                      <input
+                        type="radio"
+                        name="plan"
                         value={plan.id}
                         checked={selectedPlanId === plan.id}
                         onChange={(e) => setSelectedPlanId(e.target.value)}
@@ -131,12 +141,12 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
                       />
                       <div>
                         <div className="font-semibold text-slate-900">{plan.name}</div>
-                        <div className="text-sm text-slate-500 capitalize">{plan.type} ({plan.duration_days} días)</div>
+                        <div className="text-sm text-slate-500 capitalize">
+                          {plan.type} ({plan.duration_days} días)
+                        </div>
                       </div>
                     </div>
-                    <div className="text-lg font-bold text-primary-600">
-                      ${plan.base_price}
-                    </div>
+                    <div className="text-lg font-bold text-primary-600">${plan.base_price}</div>
                   </label>
                 ))}
               </div>
@@ -146,7 +156,9 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
               <>
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Fecha de Inicio</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Fecha de Inicio
+                    </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Calendar className="h-4 w-4 text-slate-400" />
@@ -161,7 +173,9 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Método de Pago</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Método de Pago
+                    </label>
                     <select
                       value={paymentMethod}
                       onChange={(e) => setPaymentMethod(e.target.value as any)}
@@ -176,25 +190,36 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
 
                 <div className="bg-slate-50 p-4 rounded-xl space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Descuento</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Descuento
+                    </label>
                     <div className="flex gap-2 mb-3">
                       <button
                         type="button"
-                        onClick={() => { setDiscountType('none'); setDiscountValue(0); }}
+                        onClick={() => {
+                          setDiscountType('none')
+                          setDiscountValue(0)
+                        }}
                         className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${discountType === 'none' ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
                       >
                         Ninguno
                       </button>
                       <button
                         type="button"
-                        onClick={() => { setDiscountType('percentage'); setDiscountValue(10); }}
+                        onClick={() => {
+                          setDiscountType('percentage')
+                          setDiscountValue(10)
+                        }}
                         className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${discountType === 'percentage' ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
                       >
                         Porcentaje (%)
                       </button>
                       <button
                         type="button"
-                        onClick={() => { setDiscountType('fixed'); setDiscountValue(100); }}
+                        onClick={() => {
+                          setDiscountType('fixed')
+                          setDiscountValue(100)
+                        }}
                         className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${discountType === 'fixed' ? 'bg-slate-800 text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
                       >
                         Monto Fijo ($)
@@ -219,12 +244,16 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
 
                   <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
                     <div className="text-sm font-medium text-slate-500">Total a Pagar</div>
-                    <div className="text-2xl font-black text-slate-900">${finalPrice.toFixed(2)}</div>
+                    <div className="text-2xl font-black text-slate-900">
+                      ${finalPrice.toFixed(2)}
+                    </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Notas (Opcional)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Notas (Opcional)
+                  </label>
                   <input
                     type="text"
                     value={notes}
@@ -235,7 +264,6 @@ export function AssignMembershipModal({ isOpen, onClose, memberId, onSuccess }: 
                 </div>
               </>
             )}
-
           </form>
         </div>
 

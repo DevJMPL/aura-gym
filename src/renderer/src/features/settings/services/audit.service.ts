@@ -18,7 +18,7 @@ export const auditService = {
   /**
    * Logs a user action into the audit_logs table
    */
-  async logAction(params: LogActionParams): Promise<void> {
+  async logAction(tenantId: string, params: LogActionParams): Promise<void> {
     try {
       const { data: userData } = await supabase.auth.getUser()
       if (!userData.user) return
@@ -33,6 +33,7 @@ export const auditService = {
       if (!appUser) return
 
       await supabase.from('audit_logs').insert({
+        tenant_id: tenantId,
         user_id: appUser.id,
         action: params.action,
         entity_type: params.entityType,
@@ -51,7 +52,7 @@ export const auditService = {
    * Records a user login into the history table
    * Uses basic browser APIs for device detection if available
    */
-  async recordLogin(userId: string, userName: string): Promise<string | null> {
+  async recordLogin(tenantId: string, userId: string, userName: string): Promise<string | null> {
     try {
       // Basic OS detection
       let os = 'Unknown'
@@ -69,6 +70,7 @@ export const auditService = {
       const { data, error } = await supabase
         .from('user_login_history')
         .insert({
+          tenant_id: tenantId,
           user_id: userId,
           user_name: userName,
           operating_system: os,
@@ -89,12 +91,13 @@ export const auditService = {
   /**
    * Updates a login record with logout time
    */
-  async recordLogout(historyId: string): Promise<void> {
+  async recordLogout(tenantId: string, historyId: string): Promise<void> {
     if (!historyId) return
     try {
       await supabase
         .from('user_login_history')
         .update({ logout_at: new Date().toISOString() })
+        .eq('tenant_id', tenantId)
         .eq('id', historyId)
     } catch (error) {
       console.error('Failed to record logout:', error)
@@ -104,14 +107,20 @@ export const auditService = {
   /**
    * Fetches recent audit logs (Admin only)
    */
-  async getAuditLogs(limit = 100): Promise<{ data: AuditLog[] | null; error: Error | null }> {
+  async getAuditLogs(
+    tenantId: string,
+    limit = 100
+  ): Promise<{ data: AuditLog[] | null; error: Error | null }> {
     try {
       const { data, error } = await supabase
         .from('audit_logs')
-        .select(`
+        .select(
+          `
           *,
           user:user_id(id, full_name, role)
-        `)
+        `
+        )
+        .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
         .limit(limit)
 
@@ -125,11 +134,15 @@ export const auditService = {
   /**
    * Fetches recent login history (Admin only)
    */
-  async getLoginHistory(limit = 100): Promise<{ data: UserLoginHistory[] | null; error: Error | null }> {
+  async getLoginHistory(
+    tenantId: string,
+    limit = 100
+  ): Promise<{ data: UserLoginHistory[] | null; error: Error | null }> {
     try {
       const { data, error } = await supabase
         .from('user_login_history')
         .select('*')
+        .eq('tenant_id', tenantId)
         .order('login_at', { ascending: false })
         .limit(limit)
 
@@ -138,5 +151,5 @@ export const auditService = {
     } catch (error) {
       return { data: null, error: error as Error }
     }
-  }
+  },
 }

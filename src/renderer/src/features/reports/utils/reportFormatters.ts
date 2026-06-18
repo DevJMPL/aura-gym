@@ -3,9 +3,9 @@
 // Localized formatting for MXN currency, ES dates, etc.
 // ============================================================
 
-import { format, parseISO, isValid } from 'date-fns';
-import { es } from 'date-fns/locale';
-import type { DateRange, DateRangePreset, ReportPDFMeta } from '../types/reports.types';
+import { format, parseISO, isValid } from 'date-fns'
+import { es } from 'date-fns/locale'
+import type { DateRange, DateRangePreset, ReportPDFMeta } from '../types/reports.types'
 
 // ── Currency ─────────────────────────────────────────────────
 
@@ -14,71 +14,71 @@ export function formatMXN(amount: number): string {
     style: 'currency',
     currency: 'MXN',
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount);
+    maximumFractionDigits: 2,
+  }).format(amount)
 }
 export function formatMXNCompact(amount: number): string {
   if (amount >= 1_000_000) {
-    return `$${(amount / 1_000_000).toFixed(1)}M`;
+    return `$${(amount / 1_000_000).toFixed(1)}M`
   }
   if (amount >= 1_000) {
-    return `$${(amount / 1_000).toFixed(1)}K`;
+    return `$${(amount / 1_000).toFixed(1)}K`
   }
-  return formatMXN(amount);
+  return formatMXN(amount)
 }
 
 // ── Dates ─────────────────────────────────────────────────────
 
 export function formatDateES(dateStr: string): string {
   try {
-    const d = parseISO(dateStr);
-    if (!isValid(d)) return dateStr;
+    const d = parseISO(dateStr)
+    if (!isValid(d)) return dateStr
     return format(d, "d 'de' MMMM 'de' yyyy", {
-      locale: es
-    });
+      locale: es,
+    })
   } catch {
-    return dateStr;
+    return dateStr
   }
 }
 export function formatDateShort(dateStr: string): string {
   try {
-    const d = parseISO(dateStr);
-    if (!isValid(d)) return dateStr;
-    return format(d, 'dd/MM/yyyy');
+    const d = parseISO(dateStr)
+    if (!isValid(d)) return dateStr
+    return format(d, 'dd/MM/yyyy')
   } catch {
-    return dateStr;
+    return dateStr
   }
 }
 export function formatDateMonthYear(dateStr: string): string {
   try {
-    const d = parseISO(dateStr);
-    if (!isValid(d)) return dateStr;
-    return format(d, "MMMM yyyy", {
-      locale: es
-    });
+    const d = parseISO(dateStr)
+    if (!isValid(d)) return dateStr
+    return format(d, 'MMMM yyyy', {
+      locale: es,
+    })
   } catch {
-    return dateStr;
+    return dateStr
   }
 }
 export function formatDatetimeES(dateStr: string): string {
   try {
-    const d = parseISO(dateStr);
-    if (!isValid(d)) return dateStr;
-    return format(d, "d MMM yyyy, HH:mm", {
-      locale: es
-    });
+    const d = parseISO(dateStr)
+    if (!isValid(d)) return dateStr
+    return format(d, 'd MMM yyyy, HH:mm', {
+      locale: es,
+    })
   } catch {
-    return dateStr;
+    return dateStr
   }
 }
 
 // ── Numbers ───────────────────────────────────────────────────
 
 export function formatPercentage(value: number, decimals = 1): string {
-  return `${value.toFixed(decimals)}%`;
+  return `${value.toFixed(decimals)}%`
 }
 export function formatNumber(value: number): string {
-  return new Intl.NumberFormat('es-MX').format(value);
+  return new Intl.NumberFormat('es-MX').format(value)
 }
 
 // ── Labels ────────────────────────────────────────────────────
@@ -87,30 +87,30 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   cash: 'Efectivo',
   card: 'Tarjeta',
   transfer: 'Transferencia',
-  other: 'Otro'
-};
+  other: 'Otro',
+}
 export const CHECK_IN_METHOD_LABELS: Record<string, string> = {
   kiosk: 'Kiosco',
   manual: 'Manual',
-  member_code: 'Código'
-};
+  member_code: 'Código',
+}
 export const DENIAL_REASON_LABELS: Record<string, string> = {
   expired_membership: 'Membresía vencida',
   inactive_member: 'Miembro inactivo',
   suspended_member: 'Miembro suspendido',
-  not_found: 'ID no encontrado'
-};
+  not_found: 'ID no encontrado',
+}
 export const MEMBER_STATUS_LABELS: Record<string, string> = {
   active: 'Activo',
   expired: 'Vencido',
   suspended: 'Suspendido',
-  inactive: 'Inactivo'
-};
+  inactive: 'Inactivo',
+}
 export const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
   active: 'Activa',
   expired: 'Vencida',
-  cancelled: 'Cancelada'
-};
+  cancelled: 'Cancelada',
+}
 export const PLAN_TYPE_LABELS: Record<string, string> = {
   inscription: 'Inscripción',
   visit: 'Visita',
@@ -118,44 +118,40 @@ export const PLAN_TYPE_LABELS: Record<string, string> = {
   biweekly: 'Quincenal',
   monthly: 'Mensual',
   annual: 'Anual',
-  custom: 'Personalizado'
-};
+  custom: 'Personalizado',
+}
 export const DATE_PRESET_LABELS: Record<string, string> = {
   today: 'Hoy',
   week: 'Esta semana',
   month: 'Este mes',
   prev_month: 'Mes anterior',
-  custom: 'Personalizado'
-};
+  custom: 'Personalizado',
+}
 
 // ── Date Range Label ──────────────────────────────────────────
 
 export function formatDateRangeLabel(range: DateRange, preset: DateRangePreset): string {
-  if (preset === 'today') return "Hoy";
-  if (preset === 'week') return "Esta semana";
-  if (preset === 'month') return "Este mes";
-  if (preset === 'prev_month') return "Mes anterior";
-  return `${formatDateShort(range.from)} – ${formatDateShort(range.to)}`;
+  if (preset === 'today') return 'Hoy'
+  if (preset === 'week') return 'Esta semana'
+  if (preset === 'month') return 'Este mes'
+  if (preset === 'prev_month') return 'Mes anterior'
+  return `${formatDateShort(range.from)} – ${formatDateShort(range.to)}`
 }
 
 // ── PDF HTML Template ─────────────────────────────────────────
 
 export function buildPdfHtml(meta: ReportPDFMeta, contentHtml: string): string {
-  const {
-    gymName,
-    logoUrl,
-    generatedAt,
-    dateRange,
-    preset
-  } = meta;
-  const logoSection = logoUrl ? `<img src="${logoUrl}" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:8px;" />` : `<div style="width:60px;height:60px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;color:white;font-size:28px;font-weight:bold;margin-bottom:8px;">A</div>`;
+  const { gymName, logoUrl, generatedAt, dateRange, preset } = meta
+  const logoSection = logoUrl
+    ? `<img src="${logoUrl}" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:8px;" />`
+    : `<div style="width:60px;height:60px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;color:white;font-size:28px;font-weight:bold;margin-bottom:8px;">A</div>`
   const reportTitleMap: Record<string, string> = {
     dashboard: 'Reporte General',
     financial: 'Reporte Financiero',
     attendance: 'Reporte de Asistencias',
     memberships: 'Reporte de Membresías',
-    members: 'Reporte de Miembros'
-  };
+    members: 'Reporte de Miembros',
+  }
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -187,14 +183,14 @@ export function buildPdfHtml(meta: ReportPDFMeta, contentHtml: string): string {
     <div>${logoSection}</div>
     <div class="header-info">
       <h1>${gymName}</h1>
-      <h2>${reportTitleMap[meta.reportType] || "Reporte" || 'Reporte'}</h2>
+      <h2>${reportTitleMap[meta.reportType] || 'Reporte' || 'Reporte'}</h2>
       <div class="header-meta">
-        ${"Periodo:"} ${formatDateRangeLabel(dateRange, preset)}<br/>
+        ${'Periodo:'} ${formatDateRangeLabel(dateRange, preset)}<br/>
         ${formatDateShort(dateRange.from)} — ${formatDateShort(dateRange.to)}
       </div>
     </div>
     <div class="header-right">
-      ${"Generado el"}<br/>
+      ${'Generado el'}<br/>
       <strong>${formatDatetimeES(generatedAt)}</strong>
     </div>
   </div>
@@ -202,9 +198,9 @@ export function buildPdfHtml(meta: ReportPDFMeta, contentHtml: string): string {
     ${contentHtml}
   </div>
   <div class="footer">
-    <span>${"Generado por Aura Gym Management"}</span>
+    <span>${'Generado por Aura Gym Management'}</span>
     <span>${gymName} — ${formatDateShort(generatedAt)}</span>
   </div>
 </body>
-</html>`;
+</html>`
 }

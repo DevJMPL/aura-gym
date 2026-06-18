@@ -19,6 +19,7 @@ import { DonutChartReport } from '../components/charts/DonutChartReport'
 import { ExportPdfButton } from '../components/ExportPdfButton'
 import { ExportCsvButton } from '../components/ExportCsvButton'
 import { useGym } from '../../../contexts/GymContext'
+import { useTenant } from '../../../contexts/TenantContext'
 import type { ReportPDFMeta, TopAttendanceMember, TableColumn } from '../types/reports.types'
 import { LoadingState } from '../../../components/ui'
 
@@ -38,9 +39,7 @@ const topMemberColumns: TableColumn<TopAttendanceMember>[] = [
     key: 'count',
     header: 'Asistencias',
     align: 'right',
-    render: (row) => (
-      <span className="font-bold text-emerald-700">{row.count}</span>
-    ),
+    render: (row) => <span className="font-bold text-emerald-700">{row.count}</span>,
     width: '110px',
   },
 ]
@@ -53,11 +52,15 @@ const csvTopColumns = [
 
 export function AttendanceReportPage() {
   const { gym } = useGym()
+  const { activeTenantId } = useTenant()
   const { preset, range, setPreset, setCustomRange } = useDateRange('month')
 
   const { data, isLoading, error } = useReport(
-    () => getAttendanceReport(range),
-    [range.from, range.to]
+    () =>
+      activeTenantId
+        ? getAttendanceReport(activeTenantId, range)
+        : Promise.reject(new Error('No tenant')),
+    [range.from, range.to, activeTenantId]
   )
 
   const pdfMeta: ReportPDFMeta = {
@@ -97,8 +100,7 @@ export function AttendanceReportPage() {
           ${data.topMembers
             .slice(0, 15)
             .map(
-              (m) =>
-                `<tr><td>${m.memberCode}</td><td>${m.memberName}</td><td>${m.count}</td></tr>`
+              (m) => `<tr><td>${m.memberCode}</td><td>${m.memberName}</td><td>${m.count}</td></tr>`
             )
             .join('')}
         </tbody>
@@ -128,12 +130,21 @@ export function AttendanceReportPage() {
               data={data?.topMembers ?? []}
               filename={`asistencias-top-${range.from}`}
             />
-            <ExportPdfButton meta={pdfMeta} buildContent={buildPdfContent} filename={`asistencias-${range.from}`} />
+            <ExportPdfButton
+              meta={pdfMeta}
+              buildContent={buildPdfContent}
+              filename={`asistencias-${range.from}`}
+            />
           </div>
         }
       />
 
-      <DateRangeFilter preset={preset} range={range} onPresetChange={setPreset} onCustomRange={setCustomRange} />
+      <DateRangeFilter
+        preset={preset}
+        range={range}
+        onPresetChange={setPreset}
+        onCustomRange={setCustomRange}
+      />
 
       {/* Summary cards */}
       <ReportSummaryGrid columns={4}>
@@ -183,7 +194,12 @@ export function AttendanceReportPage() {
           {isLoading ? (
             <LoadingState message="Cargando..." />
           ) : (
-            <LineChartReport data={data?.byDay ?? []} color="#10b981" showArea label="Asistencias" />
+            <LineChartReport
+              data={data?.byDay ?? []}
+              color="#10b981"
+              showArea
+              label="Asistencias"
+            />
           )}
         </ReportChartCard>
 
@@ -202,16 +218,15 @@ export function AttendanceReportPage() {
       </div>
 
       {/* Hourly chart */}
-      <ReportChartCard title="Asistencias por hora" subtitle="Horarios con mayor afluencia" minHeight={200}>
+      <ReportChartCard
+        title="Asistencias por hora"
+        subtitle="Horarios con mayor afluencia"
+        minHeight={200}
+      >
         {isLoading ? (
           <LoadingState message="Cargando..." />
         ) : (
-          <BarChartReport
-            data={data?.byHour ?? []}
-            color="#6366f1"
-            height={200}
-            highlightMax
-          />
+          <BarChartReport data={data?.byHour ?? []} color="#6366f1" height={200} highlightMax />
         )}
       </ReportChartCard>
 

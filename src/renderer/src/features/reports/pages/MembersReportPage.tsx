@@ -18,6 +18,7 @@ import { LineChartReport } from '../components/charts/LineChartReport'
 import { ExportPdfButton } from '../components/ExportPdfButton'
 import { formatDateShort, MEMBER_STATUS_LABELS } from '../utils/reportFormatters'
 import { useGym } from '../../../contexts/GymContext'
+import { useTenant } from '../../../contexts/TenantContext'
 import type {
   ReportPDFMeta,
   AtRiskMemberRow,
@@ -103,7 +104,9 @@ const newMemberColumns: TableColumn<NewMemberRow>[] = [
         inactive: 'bg-slate-100 text-slate-500',
       }
       return (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${colorMap[row.status] ?? 'bg-slate-100 text-slate-500'}`}>
+        <span
+          className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${colorMap[row.status] ?? 'bg-slate-100 text-slate-500'}`}
+        >
           {labels[row.status] ?? row.status}
         </span>
       )
@@ -115,11 +118,15 @@ const newMemberColumns: TableColumn<NewMemberRow>[] = [
 
 export function MembersReportPage() {
   const { gym } = useGym()
+  const { activeTenantId } = useTenant()
   const { preset, range, setPreset, setCustomRange } = useDateRange('month')
 
   const { data, isLoading, error } = useReport(
-    () => getMembersReport(range),
-    [range.from, range.to]
+    () =>
+      activeTenantId
+        ? getMembersReport(activeTenantId, range)
+        : Promise.reject(new Error('No tenant')),
+    [range.from, range.to, activeTenantId]
   )
 
   const pdfMeta: ReportPDFMeta = {
@@ -185,7 +192,12 @@ export function MembersReportPage() {
         }
       />
 
-      <DateRangeFilter preset={preset} range={range} onPresetChange={setPreset} onCustomRange={setCustomRange} />
+      <DateRangeFilter
+        preset={preset}
+        range={range}
+        onPresetChange={setPreset}
+        onCustomRange={setCustomRange}
+      />
 
       {/* Summary cards */}
       <ReportSummaryGrid columns={4}>
@@ -237,11 +249,19 @@ export function MembersReportPage() {
           )}
         </ReportChartCard>
 
-        <ReportChartCard title="Nuevos miembros por período" subtitle="Altas en el periodo seleccionado">
+        <ReportChartCard
+          title="Nuevos miembros por período"
+          subtitle="Altas en el periodo seleccionado"
+        >
           {isLoading ? (
             <LoadingState message="Cargando..." />
           ) : (
-            <LineChartReport data={data?.newByPeriod ?? []} color="#6366f1" showArea label="Nuevos miembros" />
+            <LineChartReport
+              data={data?.newByPeriod ?? []}
+              color="#6366f1"
+              showArea
+              label="Nuevos miembros"
+            />
           )}
         </ReportChartCard>
       </div>
@@ -251,7 +271,9 @@ export function MembersReportPage() {
         <h3 className="font-semibold text-slate-800 text-sm mb-3 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-500" />
           Miembros en riesgo de abandono
-          <span className="text-xs text-slate-400 font-normal">(membresía activa, sin asistencia en 14+ días)</span>
+          <span className="text-xs text-slate-400 font-normal">
+            (membresía activa, sin asistencia en 14+ días)
+          </span>
         </h3>
         <ReportTable<AtRiskMemberRow>
           columns={atRiskColumns}

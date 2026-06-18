@@ -29,9 +29,7 @@ export function ReportChartCard({
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
           <h3 className="font-semibold text-slate-800 text-sm leading-tight">{title}</h3>
-          {subtitle && (
-            <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
         </div>
         {action && <div className="shrink-0">{action}</div>}
       </div>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Gym - Iniciando</title>
+    <style>
+        :root {
+            --bg-color: #fafafa; /* Zinc 50 */
+            --text-color: #18181b; /* Zinc 900 */
+            --text-muted: #71717a; /* Zinc 500 */
+            --accent-color: #3b82f6; /* Blue 500 */
+            --progress-bg: #e4e4e7; /* Zinc 200 */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            overflow: hidden;
+            -webkit-app-region: drag; /* Allows moving the window */
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.05); /* Subtle dark border */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); /* Lighter shadow */
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        .title {
+            color: var(--text-color);
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+
+        .progress-wrapper {
+            width: 100%;
+            max-width: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background-color: var(--progress-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--text-color); /* White progress bar for premium look */
+            border-radius: 4px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .status-text {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 400;
+            text-align: center;
+            margin: 0;
+            letter-spacing: 0.2px;
+            transition: opacity 0.3s ease;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <!-- Using the local icon -->
+            <img src="./logo.png" alt="Aura Logo" class="logo">
+            <h1 class="title">Aura Gym</h1>
+        </div>
+        
+        <div class="progress-wrapper">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <p class="status-text" id="statusText">Inicializando...</p>
+        </div>
+    </div>
+
+    <script>
+        // Use the exposed API from preload
+        if (window.api) {
+            window.api.onProgress((event, data) => {
+                const progressBar = document.getElementById('progressBar');
+                const statusText = document.getElementById('statusText');
+                
+                if (data.progress !== undefined) {
+                    progressBar.style.width = `${data.progress}%`;
+                }
+                if (data.text !== undefined) {
+                    // Fade out, change text, fade in for smooth transition
+                    statusText.style.opacity = 0;
+                    setTimeout(() => {
+                        statusText.textContent = data.text;
+                        statusText.style.opacity = 1;
+                    }, 150);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

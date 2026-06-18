@@ -14,7 +14,16 @@ export const pdfService = {
    */
   async exportToPdf(htmlContent: string, filename: string): Promise<void> {
     // Access the Electron API exposed via preload
-    const api = (window as Window & { api?: { printToPdf?: (html: string, filename: string) => Promise<{ success: boolean; error?: string }> } }).api
+    const api = (
+      window as Window & {
+        api?: {
+          printToPdf?: (
+            html: string,
+            filename: string
+          ) => Promise<{ success: boolean; error?: string }>
+        }
+      }
+    ).api
 
     if (!api?.printToPdf) {
       // Fallback: open print dialog using window.print() on a new window

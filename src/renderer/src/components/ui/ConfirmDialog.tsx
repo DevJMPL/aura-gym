@@ -26,8 +26,8 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   if (!isOpen) return null
 
-  const defaultConfirmLabel = confirmLabel === 'Confirmar' ? "Confirmar" : confirmLabel
-  const defaultCancelLabel = cancelLabel === 'Cancelar' ? "Cancelar" : cancelLabel
+  const defaultConfirmLabel = confirmLabel === 'Confirmar' ? 'Confirmar' : confirmLabel
+  const defaultCancelLabel = cancelLabel === 'Cancelar' ? 'Cancelar' : cancelLabel
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

@@ -37,12 +37,16 @@ import { PAYMENT_METHOD_LABELS, CHECK_IN_METHOD_LABELS } from '../utils/reportFo
 // DASHBOARD SUMMARY
 // ─────────────────────────────────────────────────────────────
 
-export async function getDashboardSummary(range: DateRange): Promise<DashboardReportSummary> {
+export async function getDashboardSummary(
+  tenantId: string,
+  range: DateRange
+): Promise<DashboardReportSummary> {
   const [paymentsRes, attendanceRes, membersRes, membershipsRes] = await Promise.all([
     // Revenue in range
     supabase
       .from('payments')
       .select('amount, payment_date')
+      .eq('tenant_id', tenantId)
       .gte('payment_date', range.from)
       .lte('payment_date', `${range.to}T23:59:59`),
 
@@ -50,16 +54,15 @@ export async function getDashboardSummary(range: DateRange): Promise<DashboardRe
     supabase
       .from('attendance_records')
       .select('check_in_date, check_in_at, access_result, status')
+      .eq('tenant_id', tenantId)
       .gte('check_in_date', range.from)
       .lte('check_in_date', range.to),
 
     // Member counts (all)
-    supabase.from('members').select('status'),
+    supabase.from('members').select('status').eq('tenant_id', tenantId),
 
     // Memberships expiring soon or denied access
-    supabase
-      .from('memberships')
-      .select('end_date, status'),
+    supabase.from('memberships').select('end_date, status').eq('tenant_id', tenantId),
   ])
 
   if (paymentsRes.error) throw paymentsRes.error
@@ -92,6 +95,7 @@ export async function getDashboardSummary(range: DateRange): Promise<DashboardRe
   const plansRes = await supabase
     .from('memberships')
     .select('plan_id, plan:membership_plans(name)')
+    .eq('tenant_id', tenantId)
     .gte('created_at', range.from)
     .lte('created_at', `${range.to}T23:59:59`)
 
@@ -141,11 +145,15 @@ export async function getDashboardSummary(range: DateRange): Promise<DashboardRe
 // ATTENDANCE REPORT
 // ─────────────────────────────────────────────────────────────
 
-export async function getAttendanceReport(range: DateRange): Promise<AttendanceReportData> {
+export async function getAttendanceReport(
+  tenantId: string,
+  range: DateRange
+): Promise<AttendanceReportData> {
   const [attendanceRes, topMembersRes] = await Promise.all([
     supabase
       .from('attendance_records')
       .select('*, member:members(id, full_name, member_code, photo_url)')
+      .eq('tenant_id', tenantId)
       .gte('check_in_date', range.from)
       .lte('check_in_date', range.to)
       .order('check_in_at', { ascending: true }),
@@ -154,6 +162,7 @@ export async function getAttendanceReport(range: DateRange): Promise<AttendanceR
     supabase
       .from('attendance_records')
       .select('member_id, member:members(id, full_name, member_code, photo_url)')
+      .eq('tenant_id', tenantId)
       .gte('check_in_date', range.from)
       .lte('check_in_date', range.to)
       .eq('status', 'valid')
@@ -180,20 +189,16 @@ export async function getAttendanceReport(range: DateRange): Promise<AttendanceR
 
   // Peak hour
   const hourData = groupByHour(validRecords, 'check_in_at')
-  const peakHourEntry = hourData.reduce(
-    (max, h) => (h.value > max.value ? h : max),
-    { label: '00:00', value: 0 }
-  )
+  const peakHourEntry = hourData.reduce((max, h) => (h.value > max.value ? h : max), {
+    label: '00:00',
+    value: 0,
+  })
   if (peakHourEntry.value > 0) {
     summary.peakHour = peakHourEntry.label
   }
 
   // Time series
-  const byDay = fillDateGaps(
-    groupByDay(validRecords, 'check_in_date'),
-    range.from,
-    range.to
-  )
+  const byDay = fillDateGaps(groupByDay(validRecords, 'check_in_date'), range.from, range.to)
   const byWeek = groupByWeek(validRecords, 'check_in_date')
   const byMonth = groupByMonth(validRecords, 'check_in_date')
 
@@ -206,7 +211,10 @@ export async function getAttendanceReport(range: DateRange): Promise<AttendanceR
   }))
 
   // Top members
-  const topMembersMap = new Map<string, { member: { full_name: string; member_code: string; photo_url: string | null }; count: number }>()
+  const topMembersMap = new Map<
+    string,
+    { member: { full_name: string; member_code: string; photo_url: string | null }; count: number }
+  >()
   for (const r of topMembersRes.data ?? []) {
     if (!r.member_id) continue
     const memberData = Array.isArray(r.member) ? r.member[0] : r.member
@@ -247,10 +255,14 @@ export async function getAttendanceReport(range: DateRange): Promise<AttendanceR
 // FINANCIAL REPORT
 // ─────────────────────────────────────────────────────────────
 
-export async function getFinancialReport(range: DateRange): Promise<FinancialReportData> {
+export async function getFinancialReport(
+  tenantId: string,
+  range: DateRange
+): Promise<FinancialReportData> {
   const { data, error } = await supabase
     .from('payments')
-    .select(`
+    .select(
+      `
       id,
       amount,
       payment_method,
@@ -258,7 +270,9 @@ export async function getFinancialReport(range: DateRange): Promise<FinancialRep
       payment_date,
       member:members(full_name, member_code),
       membership:memberships(plan_id, plan:membership_plans(name), discount_type, discount_value)
-    `)
+    `
+    )
+    .eq('tenant_id', tenantId)
     .gte('payment_date', range.from)
     .lte('payment_date', `${range.to}T23:59:59`)
     .order('payment_date', { ascending: true })
@@ -368,7 +382,10 @@ export async function getFinancialReport(range: DateRange): Promise<FinancialRep
 // MEMBERSHIP REPORT
 // ─────────────────────────────────────────────────────────────
 
-export async function getMembershipReport(range: DateRange): Promise<MembershipReportData> {
+export async function getMembershipReport(
+  tenantId: string,
+  range: DateRange
+): Promise<MembershipReportData> {
   const today = new Date().toISOString().substring(0, 10)
   const in7Days = new Date(Date.now() + 7 * 86400000).toISOString().substring(0, 10)
 
@@ -376,13 +393,17 @@ export async function getMembershipReport(range: DateRange): Promise<MembershipR
     // All active/expired memberships
     supabase
       .from('memberships')
-      .select('id, status, start_date, end_date, plan_id, plan:membership_plans(name), member:members(full_name, member_code)')
+      .select(
+        'id, status, start_date, end_date, plan_id, plan:membership_plans(name), member:members(full_name, member_code)'
+      )
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false }),
 
     // New memberships in range
     supabase
       .from('memberships')
       .select('id, created_at, plan_id')
+      .eq('tenant_id', tenantId)
       .gte('created_at', range.from)
       .lte('created_at', `${range.to}T23:59:59`),
 
@@ -390,6 +411,7 @@ export async function getMembershipReport(range: DateRange): Promise<MembershipR
     supabase
       .from('memberships')
       .select('id, end_date, member:members(full_name, member_code), plan:membership_plans(name)')
+      .eq('tenant_id', tenantId)
       .eq('status', 'active')
       .gte('end_date', today)
       .lte('end_date', in7Days)
@@ -399,6 +421,7 @@ export async function getMembershipReport(range: DateRange): Promise<MembershipR
     supabase
       .from('memberships')
       .select('id, end_date, member:members(full_name, member_code), plan:membership_plans(name)')
+      .eq('tenant_id', tenantId)
       .eq('status', 'expired')
       .gte('end_date', range.from)
       .lte('end_date', range.to)
@@ -491,22 +514,31 @@ export async function getMembershipReport(range: DateRange): Promise<MembershipR
 // MEMBERS REPORT
 // ─────────────────────────────────────────────────────────────
 
-export async function getMembersReport(range: DateRange): Promise<MembersReportData> {
+export async function getMembersReport(
+  tenantId: string,
+  range: DateRange
+): Promise<MembersReportData> {
   const [membersRes, newMembersRes, atRiskRes] = await Promise.all([
     // All members with counts by status
-    supabase.from('members').select('id, status, full_name, member_code, created_at'),
+    supabase
+      .from('members')
+      .select('id, status, full_name, member_code, created_at')
+      .eq('tenant_id', tenantId),
 
     // New members in range
     supabase
       .from('members')
-      .select(`
+      .select(
+        `
         id,
         full_name,
         member_code,
         status,
         created_at,
         memberships(plan_id, plan:membership_plans(name), end_date, status)
-      `)
+      `
+      )
+      .eq('tenant_id', tenantId)
       .gte('created_at', range.from)
       .lte('created_at', `${range.to}T23:59:59`)
       .order('created_at', { ascending: false }),
@@ -514,12 +546,15 @@ export async function getMembersReport(range: DateRange): Promise<MembersReportD
     // Members with active membership but no attendance in 14+ days
     supabase
       .from('memberships')
-      .select(`
+      .select(
+        `
         member_id,
         end_date,
         plan:membership_plans(name),
         member:members(id, full_name, member_code, status)
-      `)
+      `
+      )
+      .eq('tenant_id', tenantId)
       .eq('status', 'active')
       .limit(200),
   ])
@@ -547,7 +582,9 @@ export async function getMembersReport(range: DateRange): Promise<MembersReportD
   const newMembers: NewMemberRow[] = (newMembersRes.data ?? []).map((m) => {
     const memberships = Array.isArray(m.memberships) ? m.memberships : []
     const activeMembership = memberships.find((ms: { status: string }) => ms.status === 'active')
-    const planData = Array.isArray(activeMembership?.plan) ? activeMembership?.plan[0] : activeMembership?.plan
+    const planData = Array.isArray(activeMembership?.plan)
+      ? activeMembership?.plan[0]
+      : activeMembership?.plan
     return {
       memberId: m.id,
       memberName: m.full_name,
@@ -571,20 +608,20 @@ export async function getMembersReport(range: DateRange): Promise<MembersReportD
       const { data: lastAtt } = await supabase
         .from('attendance_records')
         .select('check_in_date')
+        .eq('tenant_id', tenantId)
         .eq('member_id', membership.member_id)
         .eq('status', 'valid')
         .order('check_in_date', { ascending: false })
         .limit(1)
 
       const lastDate = lastAtt?.[0]?.check_in_date ?? null
-      const daysSince = lastDate
-        ? differenceInDays(new Date(), parseISO(lastDate))
-        : 999
+      const daysSince = lastDate ? differenceInDays(new Date(), parseISO(lastDate)) : 999
 
       if (daysSince >= 14) {
         const { count: totalAtt } = await supabase
           .from('attendance_records')
           .select('*', { count: 'exact', head: true })
+          .eq('tenant_id', tenantId)
           .eq('member_id', membership.member_id)
           .eq('status', 'valid')
 
@@ -617,7 +654,6 @@ export async function getMembersReport(range: DateRange): Promise<MembersReportD
       }
     }
   }
-
 
   return {
     summary: {

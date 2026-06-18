@@ -8,19 +8,21 @@ import { memberService } from '../../features/members/services/memberService'
 import { TrainingDaysSelector } from '../../features/members/components/TrainingDaysSelector'
 import { Button, Input, Select, Card, AlertBanner, PhotoCapture } from '../../components/ui'
 import { storageService } from '../../lib/supabase/storageService'
+import { useTenant } from '../../contexts/TenantContext'
 import type { MemberFormData } from '../../types/database'
 
 export function MemberFormPage() {
   const { id } = useParams()
+  const { activeTenantId } = useTenant()
   const STATUS_OPTIONS = [
-    { value: 'active', label: "Activo" },
-    { value: 'inactive', label: "Inactivo" },
-    { value: 'suspended', label: "Suspendido" },
+    { value: 'active', label: 'Activo' },
+    { value: 'inactive', label: 'Inactivo' },
+    { value: 'suspended', label: 'Suspendido' },
   ]
 
   const isEditing = Boolean(id && id !== 'new')
   const navigate = useNavigate()
-  
+
   const [error, setError] = useState<string | null>(null)
   const [trainingDays, setTrainingDays] = useState<number[]>([])
   const [isCapturing, setIsCapturing] = useState(false)
@@ -28,9 +30,9 @@ export function MemberFormPage() {
   const [existingPhoto, setExistingPhoto] = useState<string | null>(null)
 
   const memberSchema = z.object({
-    full_name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+    full_name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
     username: z.string().optional(),
-    email: z.string().email("Email inválido").or(z.literal('')),
+    email: z.string().email('Email inválido').or(z.literal('')),
     phone: z.string().optional(),
     date_of_birth: z.string().optional(),
     notes: z.string().optional(),
@@ -57,66 +59,73 @@ export function MemberFormPage() {
   })
 
   useEffect(() => {
-    if (isEditing && id) {
+    if (isEditing && id && activeTenantId) {
       Promise.all([
-        memberService.getById(id),
-        memberService.getTrainingDays(id)
-      ]).then(([member, days]) => {
-        reset({
-          full_name: member.full_name,
-          username: member.username || '',
-          email: member.email || '',
-          phone: member.phone || '',
-          date_of_birth: member.date_of_birth || '',
-          notes: member.notes || '',
-          status: member.status,
+        memberService.getById(activeTenantId, id),
+        memberService.getTrainingDays(activeTenantId, id),
+      ])
+        .then(([member, days]) => {
+          reset({
+            full_name: member.full_name,
+            username: member.username || '',
+            email: member.email || '',
+            phone: member.phone || '',
+            date_of_birth: member.date_of_birth || '',
+            notes: member.notes || '',
+            status: member.status,
+          })
+          setExistingPhoto(member.photo_url || null)
+          setTrainingDays(days)
         })
-        setExistingPhoto(member.photo_url || null)
-        setTrainingDays(days)
-      }).catch(err => {
-        setError(`${"Error al cargar el miembro:"} ${err.message}`)
-      })
+        .catch((err) => {
+          setError(`${'Error al cargar el miembro:'} ${err.message}`)
+        })
     }
-  }, [id, isEditing, reset])
+  }, [id, isEditing, reset, activeTenantId])
 
   const onSubmit = async (data: MemberFormValues) => {
     try {
       setError(null)
-      
+      if (!activeTenantId) {
+        setError('No se pudo determinar el gimnasio activo.')
+        return
+      }
+
       let memberId = id
-      
-      const payload: Partial<MemberFormData> = {
+
+      let photoUrl = existingPhoto
+      if (base64Photo) {
+        const fileName = `member-${Date.now()}.jpg`
+        photoUrl = await storageService.uploadAvatar(base64Photo, fileName)
+      }
+
+      const payload: Partial<MemberFormData> & { photo_url?: string | null } = {
         ...data,
         username: data.username || undefined,
         email: data.email || undefined,
         phone: data.phone || undefined,
         date_of_birth: data.date_of_birth || undefined,
         notes: data.notes || undefined,
+        photo_url: photoUrl,
       }
-      
-      if (base64Photo) {
-        const fileName = `member-${Date.now()}.jpg`
-        const url = await storageService.uploadAvatar(base64Photo, fileName)
-        ;(payload as any).photo_url = url
-      }
-      
+
       if (isEditing && id) {
-        await memberService.update(id, payload)
+        await memberService.update(activeTenantId, id, payload)
       } else {
-        const newMember = await memberService.create(payload as MemberFormData)
+        const newMember = await memberService.create(activeTenantId, payload as MemberFormData)
         memberId = newMember.id
       }
-      
+
       if (memberId) {
-        await memberService.saveTrainingDays(memberId, trainingDays)
+        await memberService.saveTrainingDays(activeTenantId, memberId, trainingDays)
       }
-      
+
       navigate(`/members/${memberId}`, { replace: true })
-    } catch (err: any) {
-      if (err.message && err.message.includes('members_username_key')) {
-        setError("Ese @Username ya está en uso. Por favor, elige uno diferente.")
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes('members_username_key')) {
+        setError('Ese @Username ya está en uso. Por favor, elige uno diferente.')
       } else {
-        setError(err.message || "Error al guardar el miembro")
+        setError(err instanceof Error ? err.message : 'Error al guardar el miembro')
       }
     }
   }
@@ -124,7 +133,7 @@ export function MemberFormPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="p-2 hover:bg-slate-100 rounded-full transition-colors"
         >
@@ -132,10 +141,12 @@ export function MemberFormPage() {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
-            {isEditing ? "Editar Miembro" : "Nuevo Miembro"}
+            {isEditing ? 'Editar Miembro' : 'Nuevo Miembro'}
           </h1>
           <p className="text-slate-500 mt-1">
-            {isEditing ? "Actualiza los datos del cliente" : "Registra un nuevo cliente en el gimnasio"}
+            {isEditing
+              ? 'Actualiza los datos del cliente'
+              : 'Registra un nuevo cliente en el gimnasio'}
           </p>
         </div>
       </div>
@@ -148,7 +159,11 @@ export function MemberFormPage() {
             <div className="relative group">
               <div className="w-28 h-28 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-300 overflow-hidden">
                 {base64Photo || existingPhoto ? (
-                  <img src={base64Photo || existingPhoto!} alt="Member preview" className="w-full h-full object-cover" />
+                  <img
+                    src={base64Photo || existingPhoto!}
+                    alt="Member preview"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <UserIcon className="w-10 h-10" />
                 )}
@@ -165,45 +180,41 @@ export function MemberFormPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
-              label={"Nombre Completo *"}
+              label={'Nombre Completo *'}
               error={errors.full_name?.message}
               {...register('full_name')}
             />
-            
+
             <Input
-              label={"@Username (opcional)"}
+              label={'@Username (opcional)'}
               error={errors.username?.message}
               placeholder="Ej: juanchin99"
               {...register('username')}
             />
-            
+
             <Input
-              label={"Correo Electrónico"}
+              label={'Correo Electrónico'}
               type="email"
               error={errors.email?.message}
               {...register('email')}
             />
-            
+
+            <Input label={'Teléfono'} error={errors.phone?.message} {...register('phone')} />
+
             <Input
-              label={"Teléfono"}
-              error={errors.phone?.message}
-              {...register('phone')}
-            />
-            
-            <Input
-              label={"Fecha de Nacimiento"}
+              label={'Fecha de Nacimiento'}
               type="date"
               error={errors.date_of_birth?.message}
               {...register('date_of_birth')}
             />
-            
+
             <div className="md:col-span-2">
               <Controller
                 name="status"
                 control={control}
                 render={({ field }) => (
                   <Select
-                    label={"Estado"}
+                    label={'Estado'}
                     options={STATUS_OPTIONS}
                     error={errors.status?.message}
                     {...field}
@@ -211,29 +222,26 @@ export function MemberFormPage() {
                 )}
               />
             </div>
-            
+
             <div className="md:col-span-2">
-              <TrainingDaysSelector 
-                selectedDays={trainingDays} 
-                onChange={setTrainingDays} 
-              />
+              <TrainingDaysSelector selectedDays={trainingDays} onChange={setTrainingDays} />
             </div>
-            
+
             <div className="md:col-span-2">
               <Input
-                label={"Notas Adicionales"}
+                label={'Notas Adicionales'}
                 error={errors.notes?.message}
                 {...register('notes')}
               />
             </div>
           </div>
-          
+
           <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
             <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-              {"Cancelar"}
+              {'Cancelar'}
             </Button>
             <Button type="submit" isLoading={isSubmitting} icon={<Save className="w-4 h-4" />}>
-              {"Guardar Miembro"}
+              {'Guardar Miembro'}
             </Button>
           </div>
         </form>

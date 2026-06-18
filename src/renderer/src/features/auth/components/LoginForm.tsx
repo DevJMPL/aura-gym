@@ -7,10 +7,9 @@ import { useAuth } from '../../../contexts/AuthContext'
 import { Button, Input, AlertBanner } from '../../../components/ui'
 
 export function LoginForm() {
-
   const loginSchema = z.object({
-    email: z.string().email("Correo electrónico inválido"),
-    password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+    email: z.string().email('Correo electrónico inválido'),
+    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   })
 
   type LoginFormData = z.infer<typeof loginSchema>
@@ -32,7 +31,7 @@ export function LoginForm() {
 
     if (signInError) {
       if (signInError === 'Invalid login credentials') {
-        setError("Credenciales inválidas. Por favor, verifica tu correo y contraseña.")
+        setError('Credenciales inválidas. Por favor, verifica tu correo y contraseña.')
       } else {
         setError(signInError)
       }
@@ -45,7 +44,7 @@ export function LoginForm() {
 
       <div className="space-y-4">
         <Input
-          label={"Correo Electrónico"}
+          label={'Correo Electrónico'}
           type="email"
           placeholder="admin@aura.gym"
           icon={<Mail className="w-5 h-5" />}
@@ -54,7 +53,7 @@ export function LoginForm() {
         />
 
         <Input
-          label={"Contraseña"}
+          label={'Contraseña'}
           type="password"
           placeholder="••••••••"
           icon={<Lock className="w-5 h-5" />}
@@ -64,7 +63,7 @@ export function LoginForm() {
       </div>
 
       <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-        {"Iniciar Sesión"}
+        {'Iniciar Sesión'}
       </Button>
     </form>
   )
