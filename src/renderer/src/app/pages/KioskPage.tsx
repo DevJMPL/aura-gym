@@ -7,6 +7,7 @@ import {
   XCircle,
   ArrowLeft,
   User as UserIcon,
+  Flame,
 } from 'lucide-react'
 import { useGym } from '../../contexts/GymContext'
 import { useTenant } from '../../contexts/TenantContext'
@@ -26,6 +27,7 @@ export function KioskPage() {
   const [message, setMessage] = useState('')
   const [memberName, setMemberName] = useState('')
   const [memberPhoto, setMemberPhoto] = useState<string | null>(null)
+  const [memberStreak, setMemberStreak] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const [showExitModal, setShowExitModal] = useState(false)
@@ -83,6 +85,9 @@ export function KioskPage() {
       setMemberName(result.memberName || '')
       setMemberPhoto(result.memberPhoto || null)
       setMessage(result.message)
+      if (result.streak !== undefined) {
+        setMemberStreak(result.streak)
+      }
 
       if (result.success) {
         setStatus('success')
@@ -106,6 +111,7 @@ export function KioskPage() {
       setMessage('')
       setMemberName('')
       setMemberPhoto(null)
+      setMemberStreak(0)
       // Focus back on input after reset
       setTimeout(() => {
         inputRef.current?.focus()
@@ -282,6 +288,17 @@ export function KioskPage() {
               </div>
               <h2 className="text-2xl font-bold text-slate-900">{memberName}</h2>
               <p className="text-green-600 font-medium text-lg mt-1">{message}</p>
+
+              {/* Streak Animation */}
+              {memberStreak > 0 && (
+                <div className="mt-4 flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-5 py-2 rounded-full shadow-lg shadow-orange-500/40 animate-bounce">
+                  <Flame className="w-7 h-7 animate-pulse text-yellow-300" />
+                  <span className="font-black text-2xl tracking-tight">{memberStreak}</span>
+                  <span className="font-semibold text-orange-100 text-sm uppercase tracking-wide">
+                    Racha
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Warning State */}

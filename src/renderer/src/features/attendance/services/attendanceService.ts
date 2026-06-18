@@ -7,7 +7,7 @@ import type {
   AccessResult,
   DenialReason,
 } from '../../../types/database'
-import { format } from 'date-fns'
+import { format, parseISO, getDay, subDays } from 'date-fns'
 
 export interface ProcessCheckInResult {
   success: boolean
@@ -18,6 +18,7 @@ export interface ProcessCheckInResult {
   memberName?: string
   memberPhoto?: string | null
   message: string
+  streak?: number
 }
 
 export const attendanceService = {
@@ -149,6 +150,8 @@ export const attendanceService = {
       denial_reason: null,
     })
 
+    const streak = await this.calculateStreak(tenantId, member.id)
+
     return {
       success: true,
       status: 'valid',
@@ -158,7 +161,76 @@ export const attendanceService = {
       memberName: member.full_name,
       memberPhoto: member.photo_url,
       message: 'Acceso permitido',
+      streak,
     }
+  },
+
+  async calculateStreak(tenantId: string, memberId: string): Promise<number> {
+    const { data, error } = await supabase
+      .from('attendance_records')
+      .select('check_in_date')
+      .eq('tenant_id', tenantId)
+      .eq('member_id', memberId)
+      .eq('status', 'valid')
+      .order('check_in_date', { ascending: false })
+
+    if (error || !data || data.length === 0) return 0
+
+    // Fetch member training days
+    const { data: trainingDaysData } = await supabase
+      .from('member_training_days')
+      .select('day_of_week')
+      .eq('tenant_id', tenantId)
+      .eq('member_id', memberId)
+
+    const trainingDays = trainingDaysData?.map((d) => d.day_of_week) || []
+    const hasTrainingDays = trainingDays.length > 0
+    const tDaysSet = hasTrainingDays ? new Set(trainingDays) : new Set([0, 1, 2, 3, 4, 5, 6])
+
+    const uniqueDatesStr = Array.from(new Set(data.map((d) => d.check_in_date)))
+    if (uniqueDatesStr.length === 0) return 0
+
+    const uniqueDates = uniqueDatesStr.map((d) => parseISO(d))
+    const today = parseISO(format(new Date(), 'yyyy-MM-dd'))
+
+    const firstDate = uniqueDates[0]
+
+    // Find the last required training day
+    let lastRequiredDay = today
+    while (!tDaysSet.has(getDay(lastRequiredDay))) {
+      lastRequiredDay = subDays(lastRequiredDay, 1)
+    }
+
+    // If the most recent checkin is older than the last required day, the streak is broken
+    if (format(firstDate, 'yyyy-MM-dd') < format(lastRequiredDay, 'yyyy-MM-dd')) {
+      return 0
+    }
+
+    let expectedDateIter = firstDate
+    let streak = 0
+    let dateIdx = 0
+
+    while (dateIdx < uniqueDates.length) {
+      const checkInDate = uniqueDates[dateIdx]
+
+      if (format(checkInDate, 'yyyy-MM-dd') === format(expectedDateIter, 'yyyy-MM-dd')) {
+        streak++
+        dateIdx++
+        expectedDateIter = subDays(expectedDateIter, 1)
+        while (!tDaysSet.has(getDay(expectedDateIter))) {
+          expectedDateIter = subDays(expectedDateIter, 1)
+        }
+      } else {
+        if (checkInDate > expectedDateIter) {
+          streak++ // Bonus: Checked in on an off-day
+          dateIdx++
+        } else {
+          break
+        }
+      }
+    }
+
+    return streak
   },
 
   async getHistory(
