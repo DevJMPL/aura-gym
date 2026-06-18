@@ -19,10 +19,7 @@ export interface UseReportState<T> {
  * @param fetcher  Async function that returns T
  * @param deps     Dependency array — any serializable values
  */
-export function useReport<T>(
-  fetcher: () => Promise<T>,
-  deps: unknown[]
-): UseReportState<T> {
+export function useReport<T>(fetcher: () => Promise<T>, deps: unknown[]): UseReportState<T> {
   const [data, setData] = useState<T | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

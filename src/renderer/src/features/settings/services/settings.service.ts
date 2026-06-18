@@ -28,23 +28,29 @@ export const settingsService = {
   /**
    * Update the Gym Settings
    */
-  async updateGymSettings(id: string, updates: Partial<GymSettings>): Promise<void> {
+  async updateGymSettings(
+    tenantId: string,
+    id: string,
+    updates: Partial<GymSettings>
+  ): Promise<void> {
     // Get old settings for audit
     const { data: oldSettings } = await supabase
       .from('gym_settings')
       .select('*')
+      .eq('tenant_id', tenantId)
       .eq('id', id)
       .single()
 
     const { error } = await supabase
       .from('gym_settings')
       .update(updates)
+      .eq('tenant_id', tenantId)
       .eq('id', id)
 
     if (error) throw error
 
     // Log the action
-    await auditService.logAction({
+    await auditService.logAction(tenantId, {
       action: 'UPDATE_SETTINGS',
       entityType: 'gym_settings',
       entityId: id,
@@ -58,13 +64,10 @@ export const settingsService = {
    * Update the Admin/Staff Profile (AppUser)
    */
   async updateProfile(id: string, updates: Partial<AppUser>): Promise<void> {
-    const { error } = await supabase
-      .from('app_users')
-      .update(updates)
-      .eq('id', id)
+    const { error } = await supabase.from('app_users').update(updates).eq('id', id)
 
     if (error) throw error
 
     // Also update auth user if email/password changes (though not supported directly here yet)
-  }
+  },
 }

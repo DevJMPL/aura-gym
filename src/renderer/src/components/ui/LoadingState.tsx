@@ -6,7 +6,7 @@ interface LoadingStateProps {
 }
 
 export function LoadingState({ message, fullScreen = false }: LoadingStateProps) {
-  const displayMessage = message || "Cargando..."
+  const displayMessage = message || 'Cargando...'
 
   const content = (
     <div className="flex flex-col items-center justify-center gap-3 animate-fade-in">

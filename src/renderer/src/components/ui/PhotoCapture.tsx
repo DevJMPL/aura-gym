@@ -30,8 +30,8 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
       console.error('Error accessing camera:', err)
       setError(
         err.name === 'NotAllowedError'
-          ? "Acceso a la cámara denegado. Por favor permite el acceso en tu navegador o sistema."
-          : "No se pudo encontrar o acceder a una cámara."
+          ? 'Acceso a la cámara denegado. Por favor permite el acceso en tu navegador o sistema.'
+          : 'No se pudo encontrar o acceder a una cámara.'
       )
     } finally {
       setIsLoading(false)
@@ -56,8 +56,14 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
   // Bind the stream to the video element once it's mounted
   useEffect(() => {
     if (videoRef.current && stream && !isLoading && !capturedImage) {
-      videoRef.current.srcObject = stream
-      videoRef.current.play().catch(err => console.error('Error playing video:', err))
+      if (videoRef.current.srcObject !== stream) {
+        videoRef.current.srcObject = stream
+        videoRef.current.play().catch((err) => {
+          if (err.name !== 'AbortError') {
+            console.error('Error playing video:', err)
+          }
+        })
+      }
     }
   }, [stream, isLoading, capturedImage])
 
@@ -73,7 +79,7 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
         canvas.height = video.videoHeight
         // Draw the video frame to the canvas
         context.drawImage(video, 0, 0, canvas.width, canvas.height)
-        
+
         // Convert to base64 jpeg
         const imageUrl = canvas.toDataURL('image/jpeg', 0.8)
         setCapturedImage(imageUrl)
@@ -105,7 +111,7 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
         <div className="absolute top-0 inset-x-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
           <div className="flex items-center gap-2 text-white drop-shadow-md">
             <Camera className="w-5 h-5" />
-            <span className="font-semibold text-sm">{"Tomar Fotografía"}</span>
+            <span className="font-semibold text-sm">{'Tomar Fotografía'}</span>
           </div>
           <button
             onClick={handleClose}
@@ -123,23 +129,23 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
                 <AlertCircle className="w-8 h-8 text-red-500" />
               </div>
               <p className="text-white font-medium">{error}</p>
-              <button 
+              <button
                 onClick={startCamera}
                 className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-medium transition-colors"
               >
-                {"Reintentar"}
+                {'Reintentar'}
               </button>
             </div>
           ) : isLoading ? (
             <div className="flex flex-col items-center gap-3">
               <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-white/60 text-sm font-medium">{"Iniciando cámara..."}</p>
+              <p className="text-white/60 text-sm font-medium">{'Iniciando cámara...'}</p>
             </div>
           ) : capturedImage ? (
-            <img 
-              src={capturedImage} 
-              alt="Captured" 
-              className="w-full h-full object-cover transform scale-x-[-1]" 
+            <img
+              src={capturedImage}
+              alt="Captured"
+              className="w-full h-full object-cover transform scale-x-[-1]"
             />
           ) : (
             <video
@@ -150,10 +156,10 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
               className="w-full h-full object-cover transform scale-x-[-1]"
             />
           )}
-          
+
           {/* Hidden Canvas for extracting image */}
           <canvas ref={canvasRef} className="hidden" />
-          
+
           {/* Face guide overlay (only when capturing) */}
           {!capturedImage && !error && !isLoading && (
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
@@ -171,14 +177,14 @@ export function PhotoCapture({ onCapture, onCancel }: PhotoCaptureProps) {
                 className="flex items-center gap-2 px-6 py-3 text-slate-600 font-medium bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all"
               >
                 <RefreshCw className="w-5 h-5" />
-                <span>{"Tomar otra vez"}</span>
+                <span>{'Tomar otra vez'}</span>
               </button>
               <button
                 onClick={handleConfirm}
                 className="flex items-center gap-2 px-8 py-3 text-white font-bold bg-primary-600 hover:bg-primary-700 hover:shadow-lg hover:shadow-primary-600/30 rounded-2xl transition-all transform hover:scale-105"
               >
                 <Check className="w-5 h-5" />
-                <span>{"Usar esta foto"}</span>
+                <span>{'Usar esta foto'}</span>
               </button>
             </>
           ) : (

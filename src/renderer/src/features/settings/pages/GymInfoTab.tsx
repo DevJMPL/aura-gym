@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react'
 import { Dumbbell, Save, Upload, MapPin, Phone, Mail, Globe, Hash, Briefcase } from 'lucide-react'
 import { useGym } from '../../../contexts/GymContext'
+import { useTenant } from '../../../contexts/TenantContext'
 import { Card, Button } from '../../../components/ui'
 import { settingsService } from '../services/settings.service'
 
 export function GymInfoTab() {
   const { gym, refreshGym } = useGym()
+  const { activeTenantId } = useTenant()
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Form state
@@ -22,12 +24,12 @@ export function GymInfoTab() {
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !gym) return
+    if (!file || !gym || !activeTenantId) return
 
     setIsUploading(true)
     try {
       const url = await settingsService.uploadImage(file, 'gym-assets', `logo-${gym.id}`)
-      await settingsService.updateGymSettings(gym.id, { logo_url: url })
+      await settingsService.updateGymSettings(activeTenantId, gym.id, { logo_url: url })
       await refreshGym()
     } catch (error) {
       console.error('Error uploading logo:', error)
@@ -39,11 +41,11 @@ export function GymInfoTab() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!gym) return
+    if (!gym || !activeTenantId) return
 
     setIsSaving(true)
     try {
-      await settingsService.updateGymSettings(gym.id, {
+      await settingsService.updateGymSettings(activeTenantId, gym.id, {
         name,
         legal_name: legalName,
         address,
@@ -53,7 +55,6 @@ export function GymInfoTab() {
         timezone,
       })
       await refreshGym()
-      // Optional: show a success toast here
     } catch (error) {
       console.error('Error saving gym info:', error)
       alert('Hubo un error al guardar la información.')
@@ -66,41 +67,51 @@ export function GymInfoTab() {
     <div className="w-full space-y-6 animate-fade-in">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{"Información del Gimnasio"}</h2>
-          <p className="text-slate-500">{"Configura los datos públicos y de contacto de tu negocio."}</p>
+          <h2 className="text-2xl font-bold text-slate-900">{'Información del Gimnasio'}</h2>
+          <p className="text-slate-500">
+            {'Configura los datos públicos y de contacto de tu negocio.'}
+          </p>
         </div>
         <Button onClick={handleSave} disabled={isSaving} className="gap-2">
           <Save className="w-4 h-4" />
-          {isSaving ? "Guardando..." : "Guardar Cambios"}
+          {isSaving ? 'Guardando...' : 'Guardar Cambios'}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
         {/* Logo Section */}
         <div className="md:col-span-1">
           <Card className="p-6 text-center space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">{"Logotipo"}</h3>
-            
-            <div 
-              className="w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center relative group overflow-hidden transition-all hover:border-primary-400"
-            >
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              {'Logotipo'}
+            </h3>
+
+            <div className="w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center relative group overflow-hidden transition-all hover:border-primary-400">
               {gym?.logo_url ? (
                 <>
                   <img src={gym.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
                   <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <Button variant="ghost" className="text-white border-white hover:bg-white/20" onClick={() => fileInputRef.current?.click()}>
-                      {"Reemplazar"}
+                    <Button
+                      variant="ghost"
+                      className="text-white border-white hover:bg-white/20"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {'Reemplazar'}
                     </Button>
                   </div>
                 </>
               ) : (
                 <div className="text-slate-400 flex flex-col items-center p-4">
                   <Dumbbell className="w-12 h-12 mb-3 opacity-50" />
-                  <p className="text-sm font-medium">{"Sin logotipo"}</p>
-                  <Button variant="ghost" size="sm" className="mt-2 text-primary-600" onClick={() => fileInputRef.current?.click()}>
+                  <p className="text-sm font-medium">{'Sin logotipo'}</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-2 text-primary-600"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                     <Upload className="w-4 h-4 mr-2" />
-                    {"Subir"}
+                    {'Subir'}
                   </Button>
                 </div>
               )}
@@ -110,13 +121,15 @@ export function GymInfoTab() {
                 </div>
               )}
             </div>
-            <p className="text-xs text-slate-500">{"Recomendado: PNG o JPG cuadrado (ej. 512x512px). Máx 2MB."}</p>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept="image/png, image/jpeg" 
-              onChange={handleLogoChange} 
+            <p className="text-xs text-slate-500">
+              {'Recomendado: PNG o JPG cuadrado (ej. 512x512px). Máx 2MB.'}
+            </p>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/png, image/jpeg"
+              onChange={handleLogoChange}
             />
           </Card>
         </div>
@@ -127,7 +140,9 @@ export function GymInfoTab() {
             <form onSubmit={handleSave} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-sm font-semibold text-slate-700">{"Nombre Comercial"}</label>
+                  <label className="text-sm font-semibold text-slate-700">
+                    {'Nombre Comercial'}
+                  </label>
                   <div className="relative">
                     <Dumbbell className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -142,7 +157,9 @@ export function GymInfoTab() {
                 </div>
 
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-sm font-semibold text-slate-700">{"Razón Social (Opcional)"}</label>
+                  <label className="text-sm font-semibold text-slate-700">
+                    {'Razón Social (Opcional)'}
+                  </label>
                   <div className="relative">
                     <Briefcase className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -156,7 +173,7 @@ export function GymInfoTab() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">{"Teléfono"}</label>
+                  <label className="text-sm font-semibold text-slate-700">{'Teléfono'}</label>
                   <div className="relative">
                     <Phone className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -170,7 +187,9 @@ export function GymInfoTab() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">{"Correo de Contacto"}</label>
+                  <label className="text-sm font-semibold text-slate-700">
+                    {'Correo de Contacto'}
+                  </label>
                   <div className="relative">
                     <Mail className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -184,7 +203,7 @@ export function GymInfoTab() {
                 </div>
 
                 <div className="space-y-1.5 sm:col-span-2">
-                  <label className="text-sm font-semibold text-slate-700">{"Dirección"}</label>
+                  <label className="text-sm font-semibold text-slate-700">{'Dirección'}</label>
                   <div className="relative">
                     <MapPin className="w-5 h-5 text-slate-400 absolute left-3 top-3" />
                     <textarea
@@ -198,7 +217,7 @@ export function GymInfoTab() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">{"Sitio Web"}</label>
+                  <label className="text-sm font-semibold text-slate-700">{'Sitio Web'}</label>
                   <div className="relative">
                     <Globe className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -212,7 +231,7 @@ export function GymInfoTab() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">{"Zona Horaria"}</label>
+                  <label className="text-sm font-semibold text-slate-700">{'Zona Horaria'}</label>
                   <div className="relative">
                     <Hash className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <select
@@ -224,7 +243,9 @@ export function GymInfoTab() {
                       <option value="America/Monterrey">America/Monterrey</option>
                       <option value="America/Cancun">America/Cancun</option>
                       <option value="America/Bogota">America/Bogota</option>
-                      <option value="America/Argentina/Buenos_Aires">America/Argentina/Buenos_Aires</option>
+                      <option value="America/Argentina/Buenos_Aires">
+                        America/Argentina/Buenos_Aires
+                      </option>
                       <option value="Europe/Madrid">Europe/Madrid</option>
                     </select>
                   </div>

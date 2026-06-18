@@ -2,23 +2,26 @@ import { useState, useEffect } from 'react'
 import { ShieldAlert, Search, Activity, User, Settings, CreditCard } from 'lucide-react'
 import { Card, LoadingState, Badge } from '../../../components/ui'
 import { auditService } from '../services/audit.service'
+import { useTenant } from '../../../contexts/TenantContext'
 import type { AuditLog } from '../../../types/database'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 export function AuditLogsTab() {
+  const { activeTenantId } = useTenant()
   const [logs, setLogs] = useState<AuditLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     async function fetchLogs() {
-      const { data } = await auditService.getAuditLogs(100)
+      if (!activeTenantId) return
+      const { data } = await auditService.getAuditLogs(activeTenantId, 100)
       if (data) setLogs(data)
       setIsLoading(false)
     }
     fetchLogs()
-  }, [])
+  }, [activeTenantId])
 
   const filteredLogs = logs.filter(
     (log) =>

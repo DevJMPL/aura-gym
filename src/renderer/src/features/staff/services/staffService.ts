@@ -37,8 +37,8 @@ export const staffService = {
         data: {
           full_name: data.fullName,
           role: 'staff',
-        }
-      }
+        },
+      },
     })
 
     if (authError) throw authError
@@ -46,7 +46,10 @@ export const staffService = {
 
     // If there is a photo, we update the created app_user record
     if (data.photoUrl) {
-      await supabase.from('app_users').update({ photo_url: data.photoUrl }).eq('auth_id', authData.user.id)
+      await supabase
+        .from('app_users')
+        .update({ photo_url: data.photoUrl })
+        .eq('auth_id', authData.user.id)
     }
 
     // Fetch the inserted record to return

@@ -108,7 +108,7 @@ export function groupByMonth<T extends AnyRecord>(
     .map(([key, items]) => {
       const d = parseISO(`${key}-01`)
       return {
-        date: format(d, "MMM yy", { locale: es }),
+        date: format(d, 'MMM yy', { locale: es }),
         value: valueReducer ? valueReducer(items) : items.length,
       }
     })

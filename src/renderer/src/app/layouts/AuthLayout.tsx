@@ -7,7 +7,10 @@ export function AuthLayout() {
       {/* Decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-70 animate-pulse"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-70 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div
+          className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-70 animate-pulse"
+          style={{ animationDelay: '2s' }}
+        ></div>
       </div>
 
       <div className="relative w-full max-w-md z-10">
@@ -17,7 +20,7 @@ export function AuthLayout() {
             <img src={logoImage} alt="Aura Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Aura</h1>
-          <p className="text-slate-500 font-medium text-sm mt-2">{"Gym Management"}</p>
+          <p className="text-slate-500 font-medium text-sm mt-2">{'Gym Management'}</p>
         </div>
 
         {/* Content */}

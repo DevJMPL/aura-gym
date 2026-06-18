@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: aura
+appId: com.aura.gym
+productName: Aura Gym
 directories:
   buildResources: build
 files:
@@ -19,6 +19,7 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  identity: null
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
@@ -26,8 +27,22 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+  icon: resources/logo.png
 dmg:
   artifactName: ${name}-${version}.${ext}
+  title: "Instalar Aura Gym"
+  icon: resources/logo.png
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 130
+      y: 190
+      type: file
+    - x: 410
+      y: 190
+      type: link
+      path: /Applications
 linux:
   target:
     - AppImage
