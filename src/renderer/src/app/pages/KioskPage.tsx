@@ -38,10 +38,10 @@ export function KioskPage() {
 
   // Keep focus on the input unless we are showing suggestions or clicking away
   const handleBlur = (_e: React.FocusEvent<HTMLInputElement>) => {
-    // Only force focus if we're in idle state and not showing suggestions
-    // This allows clicking on suggestions without the input stealing focus back immediately
-    if (status === 'idle' && !showSuggestions) {
-      // Small delay to allow click events on suggestions to fire first
+    // Only force focus if we're in idle state and not showing suggestions or exit modal
+    // This allows clicking on suggestions or modal inputs without the main input stealing focus back
+    if (status === 'idle' && !showSuggestions && !showExitModal) {
+      // Small delay to allow click events to fire first
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus()
