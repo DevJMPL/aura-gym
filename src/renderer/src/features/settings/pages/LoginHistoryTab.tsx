@@ -2,23 +2,26 @@ import { useState, useEffect } from 'react'
 import { History, Search, Laptop, Monitor } from 'lucide-react'
 import { Card, LoadingState } from '../../../components/ui'
 import { auditService } from '../services/audit.service'
+import { useTenant } from '../../../contexts/TenantContext'
 import type { UserLoginHistory } from '../../../types/database'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 export function LoginHistoryTab() {
+  const { activeTenantId } = useTenant()
   const [logs, setLogs] = useState<UserLoginHistory[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     async function fetchLogs() {
-      const { data } = await auditService.getLoginHistory(100)
+      if (!activeTenantId) return
+      const { data } = await auditService.getLoginHistory(activeTenantId, 100)
       if (data) setLogs(data)
       setIsLoading(false)
     }
     fetchLogs()
-  }, [])
+  }, [activeTenantId])
 
   const filteredLogs = logs.filter(
     (log) =>

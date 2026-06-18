@@ -2,39 +2,36 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Mail, Lock } from 'lucide-react'
+import { Mail, Lock, User } from 'lucide-react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { Button, Input, AlertBanner } from '../../../components/ui'
 
-export function LoginForm() {
-  const loginSchema = z.object({
+export function RegisterForm() {
+  const registerSchema = z.object({
+    fullName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
     email: z.string().email('Correo electrónico inválido'),
     password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   })
 
-  type LoginFormData = z.infer<typeof loginSchema>
+  type RegisterFormData = z.infer<typeof registerSchema>
 
-  const { signIn } = useAuth()
+  const { signUp } = useAuth()
   const [error, setError] = useState<string | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
   })
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: RegisterFormData) => {
     setError(null)
-    const { error: signInError } = await signIn(data.email, data.password)
+    const { error: signUpError } = await signUp(data.email, data.password, data.fullName, 'admin')
 
-    if (signInError) {
-      if (signInError === 'Invalid login credentials') {
-        setError('Credenciales inválidas. Por favor, verifica tu correo y contraseña.')
-      } else {
-        setError(signInError)
-      }
+    if (signUpError) {
+      setError(signUpError)
     }
   }
 
@@ -43,6 +40,15 @@ export function LoginForm() {
       {error && <AlertBanner type="error" message={error} />}
 
       <div className="space-y-4">
+        <Input
+          label={'Nombre Completo'}
+          type="text"
+          placeholder="Juan Pérez"
+          icon={<User className="w-5 h-5" />}
+          error={errors.fullName?.message}
+          {...register('fullName')}
+        />
+
         <Input
           label={'Correo Electrónico'}
           type="email"
@@ -63,7 +69,7 @@ export function LoginForm() {
       </div>
 
       <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-        {'Iniciar Sesión'}
+        {'Crear Cuenta'}
       </Button>
     </form>
   )

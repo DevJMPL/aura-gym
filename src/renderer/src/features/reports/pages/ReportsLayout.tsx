@@ -4,20 +4,14 @@
 // ============================================================
 
 import { NavLink, Outlet } from 'react-router-dom'
-import {
-  LayoutDashboard,
-  DollarSign,
-  CalendarCheck,
-  CreditCard,
-  Users,
-} from 'lucide-react'
+import { LayoutDashboard, DollarSign, CalendarCheck, CreditCard, Users } from 'lucide-react'
 
 const getReportTabs = () => [
-  { to: '/reports', label: "General", icon: LayoutDashboard, end: true },
-  { to: '/reports/financial', label: "Financiero", icon: DollarSign, end: false },
-  { to: '/reports/attendance', label: "Asistencias", icon: CalendarCheck, end: false },
-  { to: '/reports/memberships', label: "Membresías", icon: CreditCard, end: false },
-  { to: '/reports/members', label: "Miembros", icon: Users, end: false },
+  { to: '/reports', label: 'General', icon: LayoutDashboard, end: true },
+  { to: '/reports/financial', label: 'Financiero', icon: DollarSign, end: false },
+  { to: '/reports/attendance', label: 'Asistencias', icon: CalendarCheck, end: false },
+  { to: '/reports/memberships', label: 'Membresías', icon: CreditCard, end: false },
+  { to: '/reports/members', label: 'Miembros', icon: Users, end: false },
 ]
 
 export function ReportsLayout() {

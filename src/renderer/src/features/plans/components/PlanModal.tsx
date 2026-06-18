@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, CreditCard, Tag, CalendarClock, DollarSign, FileText } from 'lucide-react'
 import { planService } from '../services/planService'
+import { useTenant } from '../../../contexts/TenantContext'
 import type { MembershipPlan, PlanFormData, PlanType } from '../../../types/database'
 
 interface PlanModalProps {
@@ -10,16 +11,15 @@ interface PlanModalProps {
   planToEdit?: MembershipPlan | null
 }
 
-
-
 export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalProps) {
+  const { activeTenantId } = useTenant()
   const PLAN_TYPES_TRANS: { value: PlanType; label: string; defaultDays: number }[] = [
-    { value: 'visit', label: "Visita Única (1 día)", defaultDays: 1 },
-    { value: 'weekly', label: "Semanal (7 días)", defaultDays: 7 },
-    { value: 'biweekly', label: "Quincenal (15 días)", defaultDays: 15 },
-    { value: 'monthly', label: "Mensual (30 días)", defaultDays: 30 },
-    { value: 'annual', label: "Anual (365 días)", defaultDays: 365 },
-    { value: 'custom', label: "Personalizado", defaultDays: 1 },
+    { value: 'visit', label: 'Visita Única (1 día)', defaultDays: 1 },
+    { value: 'weekly', label: 'Semanal (7 días)', defaultDays: 7 },
+    { value: 'biweekly', label: 'Quincenal (15 días)', defaultDays: 15 },
+    { value: 'monthly', label: 'Mensual (30 días)', defaultDays: 30 },
+    { value: 'annual', label: 'Anual (365 días)', defaultDays: 365 },
+    { value: 'custom', label: 'Personalizado', defaultDays: 1 },
   ]
 
   const [formData, setFormData] = useState<PlanFormData>({
@@ -59,11 +59,12 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedType = e.target.value as PlanType
     const typeDef = PLAN_TYPES_TRANS.find((t) => t.value === selectedType)
-    
+
     setFormData({
       ...formData,
       type: selectedType,
-      duration_days: typeDef && selectedType !== 'custom' ? typeDef.defaultDays : formData.duration_days,
+      duration_days:
+        typeDef && selectedType !== 'custom' ? typeDef.defaultDays : formData.duration_days,
     })
   }
 
@@ -71,13 +72,18 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
     e.preventDefault()
     setError(null)
 
+    if (!activeTenantId) {
+      setError('No se pudo determinar el gimnasio activo')
+      return
+    }
+
     if (formData.base_price < 0) {
-      setError("El precio base no puede ser negativo")
+      setError('El precio base no puede ser negativo')
       return
     }
 
     if (formData.duration_days <= 0) {
-      setError("La duración en días debe ser mayor a 0")
+      setError('La duración en días debe ser mayor a 0')
       return
     }
 
@@ -85,14 +91,14 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
 
     try {
       if (planToEdit) {
-        await planService.update(planToEdit.id, formData)
+        await planService.update(activeTenantId, planToEdit.id, formData)
       } else {
-        await planService.create(formData)
+        await planService.create(activeTenantId, formData)
       }
       onSuccess()
       onClose()
     } catch (err: any) {
-      setError(err.message || "Error al guardar el plan")
+      setError(err.message || 'Error al guardar el plan')
     } finally {
       setIsSubmitting(false)
     }
@@ -110,9 +116,9 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                {planToEdit ? "Editar Plan" : "Nuevo Plan"}
+                {planToEdit ? 'Editar Plan' : 'Nuevo Plan'}
               </h2>
-              <p className="text-slate-500">{"Configura los detalles de la tarifa"}</p>
+              <p className="text-slate-500">{'Configura los detalles de la tarifa'}</p>
             </div>
           </div>
           <button
@@ -134,7 +140,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
           <form id="plan-form" onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                {"Nombre del Plan"}
+                {'Nombre del Plan'}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -146,7 +152,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="block w-full pl-10 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400"
-                  placeholder={"Ej. Mensualidad Básica"}
+                  placeholder={'Ej. Mensualidad Básica'}
                 />
               </div>
             </div>
@@ -154,7 +160,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  {"Tipo de Plan"}
+                  {'Tipo de Plan'}
                 </label>
                 <div className="relative">
                   <select
@@ -173,7 +179,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  {"Duración (Días)"}
+                  {'Duración (Días)'}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -185,7 +191,9 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
                     required
                     disabled={formData.type !== 'custom'}
                     value={formData.duration_days}
-                    onChange={(e) => setFormData({ ...formData, duration_days: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, duration_days: parseInt(e.target.value) || 0 })
+                    }
                     className="block w-full pl-10 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400 disabled:bg-slate-50 disabled:text-slate-500"
                   />
                 </div>
@@ -194,7 +202,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                {"Precio Base"}
+                {'Precio Base'}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -206,7 +214,9 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
                   step="0.01"
                   required
                   value={formData.base_price}
-                  onChange={(e) => setFormData({ ...formData, base_price: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, base_price: parseFloat(e.target.value) || 0 })
+                  }
                   className="block w-full pl-10 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400"
                   placeholder="0.00"
                 />
@@ -215,7 +225,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                {"Descripción (Opcional)"}
+                {'Descripción (Opcional)'}
               </label>
               <div className="relative">
                 <div className="absolute top-3 left-3 flex items-start pointer-events-none">
@@ -226,7 +236,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="block w-full pl-10 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all placeholder:text-slate-400 resize-none"
-                  placeholder={"Detalles sobre este plan..."}
+                  placeholder={'Detalles sobre este plan...'}
                 />
               </div>
             </div>
@@ -239,8 +249,11 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                 className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
               />
-              <label htmlFor="is_active" className="text-sm font-medium text-slate-700 cursor-pointer">
-                {"Plan Activo (Visible para nuevas membresías)"}
+              <label
+                htmlFor="is_active"
+                className="text-sm font-medium text-slate-700 cursor-pointer"
+              >
+                {'Plan Activo (Visible para nuevas membresías)'}
               </label>
             </div>
           </form>
@@ -252,7 +265,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
             onClick={onClose}
             className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
-            {"Cancelar"}
+            {'Cancelar'}
           </button>
           <button
             type="submit"
@@ -260,7 +273,7 @@ export function PlanModal({ isOpen, onClose, onSuccess, planToEdit }: PlanModalP
             disabled={isSubmitting}
             className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-xl hover:bg-primary-700 focus:ring-4 focus:ring-primary-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {isSubmitting ? "Guardando..." : (planToEdit ? "Actualizar Plan" : "Crear Plan")}
+            {isSubmitting ? 'Guardando...' : planToEdit ? 'Actualizar Plan' : 'Crear Plan'}
           </button>
         </div>
       </div>

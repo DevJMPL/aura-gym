@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useGym } from '../../contexts/GymContext'
+
 import { memberService } from '../../features/members/services/memberService'
 import { attendanceService } from '../../features/attendance/services/attendanceService'
 import { membershipService } from '../../features/memberships/services/membershipService'
@@ -7,8 +7,10 @@ import { StatsGrid } from '../../features/dashboard/components/StatsGrid'
 import { RecentActivity } from '../../features/dashboard/components/RecentActivity'
 import { AlertsPanel } from '../../features/dashboard/components/AlertsPanel'
 import { LoadingState } from '../../components/ui'
+import { useTenant } from '../../contexts/TenantContext'
+
 export function DashboardPage() {
-  const {} = useGym()
+  const { activeTenantId } = useTenant()
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState({
     activeMembers: 0,
@@ -20,13 +22,14 @@ export function DashboardPage() {
   const [expiringMemberships, setExpiringMemberships] = useState<any[]>([])
   useEffect(() => {
     async function loadDashboardData() {
+      if (!activeTenantId) return
       try {
         setIsLoading(true)
         const [memberCount, todayCheckins, todayRecords, expiring] = await Promise.all([
-          memberService.getCount(),
-          attendanceService.getTodayCount(),
-          attendanceService.getTodayRecords(),
-          membershipService.getExpiringSoon(7),
+          memberService.getCount(activeTenantId),
+          attendanceService.getTodayCount(activeTenantId),
+          attendanceService.getTodayRecords(activeTenantId),
+          membershipService.getExpiringSoon(activeTenantId, 7),
         ])
         setStats({
           activeMembers: memberCount.active,
@@ -44,7 +47,7 @@ export function DashboardPage() {
       }
     }
     loadDashboardData()
-  }, [])
+  }, [activeTenantId])
   if (isLoading) {
     return <LoadingState fullScreen message={'Cargando panel...'} />
   }

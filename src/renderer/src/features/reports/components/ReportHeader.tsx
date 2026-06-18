@@ -31,9 +31,7 @@ export function ReportHeader({ title, subtitle, preset, range, actions }: Report
           </span>
         </div>
       </div>
-      {actions && (
-        <div className="flex items-center gap-2 shrink-0">{actions}</div>
-      )}
+      {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
     </div>
   )
 }

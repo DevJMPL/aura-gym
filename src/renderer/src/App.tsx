@@ -1,17 +1,32 @@
 import { HashRouter } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { GymProvider } from './contexts/GymContext'
+import { TenantProvider } from './contexts/TenantContext'
 import { AppRoutes } from './app/routes'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
 
 function App() {
   return (
-    <HashRouter>
-      <AuthProvider>
-        <GymProvider>
-          <AppRoutes />
-        </GymProvider>
-      </AuthProvider>
-    </HashRouter>
+    <QueryClientProvider client={queryClient}>
+      <HashRouter>
+        <AuthProvider>
+          <TenantProvider>
+            <GymProvider>
+              <AppRoutes />
+            </GymProvider>
+          </TenantProvider>
+        </AuthProvider>
+      </HashRouter>
+    </QueryClientProvider>
   )
 }
 

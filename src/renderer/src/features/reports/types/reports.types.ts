@@ -32,7 +32,7 @@ export interface DashboardReportSummary {
   totalAttendances: number
   activeMembers: number
   expiredMembers: number
-  expiringSoon: number  // Memberships expiring in <=7 days
+  expiringSoon: number // Memberships expiring in <=7 days
   deniedAccesses: number
   avgDailyAttendances: number
   topPlan: { name: string; count: number } | null
@@ -128,7 +128,7 @@ export interface MembershipSummary {
   active: number
   expired: number
   cancelled: number
-  expiringSoon: number   // <= 7 days
+  expiringSoon: number // <= 7 days
   newThisPeriod: number
   renewalsThisPeriod: number
 }
@@ -207,12 +207,7 @@ export interface MembersReportData {
 
 // ── PDF Export ────────────────────────────────────────────────
 
-export type ReportType =
-  | 'dashboard'
-  | 'financial'
-  | 'attendance'
-  | 'memberships'
-  | 'members'
+export type ReportType = 'dashboard' | 'financial' | 'attendance' | 'memberships' | 'members'
 
 export interface ReportPDFMeta {
   reportType: ReportType

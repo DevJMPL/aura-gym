@@ -8,7 +8,9 @@ import { AccessDenied } from '../components/ui/AccessDenied'
 
 import { LoginPage } from './pages/LoginPage'
 import { SetupPage } from './pages/SetupPage'
+import { SelectGymPage } from './pages/SelectGymPage'
 import { useGym } from '../contexts/GymContext'
+import { useTenant } from '../contexts/TenantContext'
 
 import { DashboardPage } from './pages/DashboardPage'
 
@@ -29,8 +31,6 @@ import { AttendanceReportPage } from '../features/reports/pages/AttendanceReport
 import { MembershipReportPage } from '../features/reports/pages/MembershipReportPage'
 import { MembersReportPage } from '../features/reports/pages/MembersReportPage'
 
-
-
 import { SettingsLayout } from '../features/settings/pages/SettingsLayout'
 import { ProfilePage } from './pages/ProfilePage'
 import { GymInfoTab } from '../features/settings/pages/GymInfoTab'
@@ -40,11 +40,20 @@ import { LoginHistoryTab } from '../features/settings/pages/LoginHistoryTab'
 import { AuditLogsTab } from '../features/settings/pages/AuditLogsTab'
 import { DeveloperInfoPage } from './pages/DeveloperInfoPage'
 
-function ProtectedRoute({ children, requireSetup = true }: { children: React.ReactNode; requireSetup?: boolean }) {
+function ProtectedRoute({
+  children,
+  requireSetup = true,
+  allowSelectGym = false,
+}: {
+  children: React.ReactNode
+  requireSetup?: boolean
+  allowSelectGym?: boolean
+}) {
   const { session, isLoading: authLoading } = useAuth()
+  const { activeTenantId, isLoadingTenants } = useTenant()
   const { isConfigured, isLoading: gymLoading } = useGym()
 
-  if (authLoading || (session && gymLoading)) {
+  if (authLoading || (session && isLoadingTenants) || (session && activeTenantId && gymLoading)) {
     return <LoadingState fullScreen message="Cargando..." />
   }
 
@@ -52,13 +61,26 @@ function ProtectedRoute({ children, requireSetup = true }: { children: React.Rea
     return <Navigate to="/login" replace />
   }
 
-  // If user is authenticated but gym is not configured, force them to setup
-  if (requireSetup && !isConfigured) {
+  // Select-gym page is always accessible when logged in (even with an active tenant)
+  if (allowSelectGym) {
+    return <>{children}</>
+  }
+
+  // If user is authenticated but needs to select or create a gym
+  if (requireSetup && !activeTenantId) {
+    return <Navigate to="/select-gym" replace />
+  }
+
+  // If user is authenticated and selected a gym, but it's not configured yet
+  if (requireSetup && activeTenantId && !isConfigured) {
+    // We can assume SetupPage sets up the gym for the first time
+    // If it's a new tenant it should be configured by default, but just in case
     return <Navigate to="/setup" replace />
   }
 
-  // If user is on setup but gym IS configured, send to dashboard
-  if (!requireSetup && isConfigured) {
+  // If user is on the setup page but HAS already selected a configured gym, send to dashboard
+  // Note: we DO NOT redirect from /select-gym here — that page is always accessible
+  if (!requireSetup && activeTenantId && isConfigured) {
     return <Navigate to="/dashboard" replace />
   }
 
@@ -66,12 +88,12 @@ function ProtectedRoute({ children, requireSetup = true }: { children: React.Rea
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { role } = useAuth()
-  
-  if (role !== 'admin') {
+  const { currentTenantRole } = useTenant()
+
+  if (currentTenantRole !== 'admin') {
     return <AccessDenied />
   }
-  
+
   return <>{children}</>
 }
 
@@ -83,12 +105,22 @@ export function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
       </Route>
 
-      {/* Setup Route (Protected) */}
+      {/* Setup Route (Protected - also accessible when user wants to add a new gym) */}
       <Route
         path="/setup"
         element={
-          <ProtectedRoute requireSetup={false}>
+          <ProtectedRoute requireSetup={false} allowSelectGym>
             <SetupPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Select Gym Route (Protected - always accessible when logged in) */}
+      <Route
+        path="/select-gym"
+        element={
+          <ProtectedRoute requireSetup={false} allowSelectGym>
+            <SelectGymPage />
           </ProtectedRoute>
         }
       />
@@ -144,11 +176,11 @@ export function AppRoutes() {
           <Route path="login-history" element={<LoginHistoryTab />} />
           <Route path="audit" element={<AuditLogsTab />} />
         </Route>
-        
+
         <Route path="/developer" element={<DeveloperInfoPage />} />
-        
+
         <Route path="/profile" element={<ProfilePage />} />
-        
+
         {/* Legacy routes redirect to settings */}
         <Route path="/staff" element={<Navigate to="/settings/staff" replace />} />
 

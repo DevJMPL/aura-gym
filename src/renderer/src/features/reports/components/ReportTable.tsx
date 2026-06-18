@@ -103,8 +103,8 @@ export function ReportTable<T extends object>({
                   >
                     {col.render
                       ? col.render(row)
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      : ((row as any)[col.key as string] as ReactNode) ?? '—'}
+                      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (((row as any)[col.key as string] as ReactNode) ?? '—')}
                   </td>
                 ))}
               </tr>

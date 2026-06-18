@@ -6,12 +6,23 @@
 export type MemberStatus = 'active' | 'expired' | 'suspended' | 'inactive'
 export type MembershipStatus = 'active' | 'expired' | 'cancelled'
 export type UserRole = 'admin' | 'staff'
-export type PlanType = 'inscription' | 'visit' | 'weekly' | 'biweekly' | 'monthly' | 'annual' | 'custom'
+export type PlanType =
+  | 'inscription'
+  | 'visit'
+  | 'weekly'
+  | 'biweekly'
+  | 'monthly'
+  | 'annual'
+  | 'custom'
 export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'other'
 export type CheckInMethod = 'kiosk' | 'manual' | 'member_code'
 export type AccessResult = 'allowed' | 'denied'
 export type AttendanceStatus = 'valid' | 'duplicate' | 'denied' | 'manual'
-export type DenialReason = 'expired_membership' | 'inactive_member' | 'suspended_member' | 'not_found'
+export type DenialReason =
+  | 'expired_membership'
+  | 'inactive_member'
+  | 'suspended_member'
+  | 'not_found'
 
 export interface AppUser {
   id: string
@@ -25,8 +36,32 @@ export interface AppUser {
   updated_at: string
 }
 
+export interface Tenant {
+  id: string
+  name: string
+  slug: string
+  owner_user_id: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  gym_settings?: { address: string | null; logo_url: string | null }[]
+}
+
+export interface TenantUser {
+  id: string
+  tenant_id: string
+  user_id: string
+  role: UserRole
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  tenant?: Tenant
+  user?: AppUser
+}
+
 export interface GymSettings {
   id: string
+  tenant_id: string
   name: string
   address: string | null
   phone: string | null
@@ -54,6 +89,7 @@ export interface GymSettings {
 
 export interface Member {
   id: string
+  tenant_id: string
   member_code: string
   username?: string | null
   full_name: string
@@ -69,6 +105,7 @@ export interface Member {
 
 export interface MembershipPlan {
   id: string
+  tenant_id: string
   name: string
   base_price: number
   duration_days: number
@@ -81,6 +118,7 @@ export interface MembershipPlan {
 
 export interface Membership {
   id: string
+  tenant_id: string
   member_id: string
   plan_id: string
   start_date: string
@@ -101,6 +139,7 @@ export interface Membership {
 
 export interface AttendanceRecord {
   id: string
+  tenant_id: string
   member_id: string | null
   membership_id: string | null
   check_in_at: string
@@ -119,6 +158,7 @@ export interface AttendanceRecord {
 
 export interface MemberTrainingDay {
   id: string
+  tenant_id: string
   member_id: string
   day_of_week: number // 0=Sunday, 6=Saturday
   created_at: string
@@ -126,6 +166,7 @@ export interface MemberTrainingDay {
 
 export interface Payment {
   id: string
+  tenant_id: string
   member_id: string
   membership_id: string | null
   amount: number
@@ -142,6 +183,7 @@ export interface Payment {
 
 export interface UserLoginHistory {
   id: string
+  tenant_id: string
   user_id: string | null
   user_name: string | null
   login_at: string
@@ -155,6 +197,7 @@ export interface UserLoginHistory {
 
 export interface AuditLog {
   id: string
+  tenant_id: string
   user_id: string | null
   action: string
   entity_type: string

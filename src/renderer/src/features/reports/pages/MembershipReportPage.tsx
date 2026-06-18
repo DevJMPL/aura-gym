@@ -19,6 +19,7 @@ import { LineChartReport } from '../components/charts/LineChartReport'
 import { ExportPdfButton } from '../components/ExportPdfButton'
 import { formatDateShort } from '../utils/reportFormatters'
 import { useGym } from '../../../contexts/GymContext'
+import { useTenant } from '../../../contexts/TenantContext'
 import type {
   ReportPDFMeta,
   ExpiringSoonRow,
@@ -99,11 +100,15 @@ const expiredColumns: TableColumn<ExpiredMembershipRow>[] = [
 
 export function MembershipReportPage() {
   const { gym } = useGym()
+  const { activeTenantId } = useTenant()
   const { preset, range, setPreset, setCustomRange } = useDateRange('month')
 
   const { data, isLoading, error } = useReport(
-    () => getMembershipReport(range),
-    [range.from, range.to]
+    () =>
+      activeTenantId
+        ? getMembershipReport(activeTenantId, range)
+        : Promise.reject(new Error('No tenant')),
+    [range.from, range.to, activeTenantId]
   )
 
   const pdfMeta: ReportPDFMeta = {
@@ -163,7 +168,12 @@ export function MembershipReportPage() {
         }
       />
 
-      <DateRangeFilter preset={preset} range={range} onPresetChange={setPreset} onCustomRange={setCustomRange} />
+      <DateRangeFilter
+        preset={preset}
+        range={range}
+        onPresetChange={setPreset}
+        onCustomRange={setCustomRange}
+      />
 
       {/* Summary cards */}
       <ReportSummaryGrid columns={4}>
@@ -215,7 +225,10 @@ export function MembershipReportPage() {
           )}
         </ReportChartCard>
 
-        <ReportChartCard title="Distribución por plan" subtitle="Membresías totales por tipo de plan">
+        <ReportChartCard
+          title="Distribución por plan"
+          subtitle="Membresías totales por tipo de plan"
+        >
           {isLoading ? (
             <LoadingState message="Cargando..." />
           ) : (
@@ -228,11 +241,19 @@ export function MembershipReportPage() {
       </div>
 
       {/* New memberships trend */}
-      <ReportChartCard title="Altas por período" subtitle="Nuevas membresías en el periodo seleccionado">
+      <ReportChartCard
+        title="Altas por período"
+        subtitle="Nuevas membresías en el periodo seleccionado"
+      >
         {isLoading ? (
           <LoadingState message="Cargando..." />
         ) : (
-          <LineChartReport data={data?.newByPeriod ?? []} color="#6366f1" showArea label="Nuevas membresías" />
+          <LineChartReport
+            data={data?.newByPeriod ?? []}
+            color="#6366f1"
+            showArea
+            label="Nuevas membresías"
+          />
         )}
       </ReportChartCard>
 

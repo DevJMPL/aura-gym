@@ -77,12 +77,9 @@ function TrendBadge({ value, label }: { value: number; label: string }) {
         isPositive ? 'text-emerald-600' : 'text-rose-600'
       }`}
     >
-      {isPositive ? (
-        <TrendingUp className="w-3 h-3" />
-      ) : (
-        <TrendingDown className="w-3 h-3" />
-      )}
-      {isPositive ? '+' : ''}{value}% {label}
+      {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+      {isPositive ? '+' : ''}
+      {value}% {label}
     </span>
   )
 }
@@ -123,9 +120,7 @@ export function ReportCard({
           ) : (
             <>
               <p className="text-2xl font-bold text-slate-900 leading-tight truncate">{value}</p>
-              {subtitle && (
-                <p className="text-xs text-slate-400 mt-0.5 truncate">{subtitle}</p>
-              )}
+              {subtitle && <p className="text-xs text-slate-400 mt-0.5 truncate">{subtitle}</p>}
             </>
           )}
         </div>

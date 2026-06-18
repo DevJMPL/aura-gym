@@ -18,9 +18,5 @@ const colsMap: Record<number, string> = {
 }
 
 export function ReportSummaryGrid({ children, columns = 4 }: ReportSummaryGridProps) {
-  return (
-    <div className={`grid gap-4 ${colsMap[columns]}`}>
-      {children}
-    </div>
-  )
+  return <div className={`grid gap-4 ${colsMap[columns]}`}>{children}</div>
 }

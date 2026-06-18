@@ -28,7 +28,7 @@ export function ProfilePage() {
       await refreshUser()
     } catch (error) {
       console.error('Error saving photo:', error)
-      alert("Hubo un error al guardar la foto.")
+      alert('Hubo un error al guardar la foto.')
     } finally {
       setIsUploading(false)
     }
@@ -42,7 +42,7 @@ export function ProfilePage() {
       setIsEditing(false)
     } catch (error) {
       console.error('Error saving name:', error)
-      alert("Hubo un error al actualizar el nombre.")
+      alert('Hubo un error al actualizar el nombre.')
     }
   }
 
@@ -50,12 +50,14 @@ export function ProfilePage() {
     <div className="w-full space-y-6 animate-fade-in">
       <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">{"Mi Perfil"}</h2>
-          <p className="text-slate-500">{"Gestiona tu información personal y credenciales de acceso."}</p>
+          <h2 className="text-2xl font-bold text-slate-900">{'Mi Perfil'}</h2>
+          <p className="text-slate-500">
+            {'Gestiona tu información personal y credenciales de acceso.'}
+          </p>
         </div>
         <Button variant="danger" onClick={signOut} className="shrink-0 gap-2">
           <LogOut className="w-4 h-4" />
-          {"Cerrar Sesión"}
+          {'Cerrar Sesión'}
         </Button>
       </div>
 
@@ -66,7 +68,11 @@ export function ProfilePage() {
             <div className="relative group">
               <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center text-primary-600 text-4xl font-bold border-4 border-white shadow-md overflow-hidden">
                 {appUser?.photo_url ? (
-                  <img src={appUser.photo_url} alt="Profile" className="w-full h-full object-cover" />
+                  <img
+                    src={appUser.photo_url}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   appUser?.full_name?.[0]?.toUpperCase() || 'A'
                 )}
@@ -80,7 +86,7 @@ export function ProfilePage() {
                 onClick={() => setIsCapturing(true)}
                 disabled={isUploading}
                 className="absolute bottom-2 right-2 w-10 h-10 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-primary-600 shadow-md transition-transform group-hover:scale-110 disabled:opacity-50 cursor-pointer"
-                title={"Cambiar fotografía"}
+                title={'Cambiar fotografía'}
               >
                 <Camera className="w-5 h-5" />
               </button>
@@ -98,9 +104,10 @@ export function ProfilePage() {
           {/* Info Section */}
           <div className="flex-1 w-full space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{"Nombre Completo"}</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {'Nombre Completo'}
+                </label>
                 {isEditing ? (
                   <div className="flex gap-2">
                     <input
@@ -109,8 +116,12 @@ export function ProfilePage() {
                       onChange={(e) => setFullName(e.target.value)}
                       className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
                     />
-                    <Button size="sm" onClick={handleSaveName}>{"Guardar"}</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>{"Cancelar"}</Button>
+                    <Button size="sm" onClick={handleSaveName}>
+                      {'Guardar'}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>
+                      {'Cancelar'}
+                    </Button>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-xl">
@@ -118,15 +129,20 @@ export function ProfilePage() {
                       <User className="w-4 h-4 text-slate-400" />
                       <span className="text-slate-900 font-medium">{appUser?.full_name}</span>
                     </div>
-                    <button onClick={() => setIsEditing(true)} className="text-primary-600 hover:underline text-sm font-medium cursor-pointer">
-                      {"Editar"}
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="text-primary-600 hover:underline text-sm font-medium cursor-pointer"
+                    >
+                      {'Editar'}
                     </button>
                   </div>
                 )}
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{"Correo Electrónico"}</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {'Correo Electrónico'}
+                </label>
                 <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-xl">
                   <Mail className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-900 font-medium">{user?.email}</span>
@@ -134,35 +150,39 @@ export function ProfilePage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{"Miembro Desde"}</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {'Miembro Desde'}
+                </label>
                 <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-xl">
                   <Calendar className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-900 font-medium">
-                    {appUser?.created_at ? format(new Date(appUser.created_at), "d 'de' MMMM, yyyy", { locale: es }) : 'N/A'}
+                    {appUser?.created_at
+                      ? format(new Date(appUser.created_at), "d 'de' MMMM, yyyy", { locale: es })
+                      : 'N/A'}
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{"Última Actualización"}</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  {'Última Actualización'}
+                </label>
                 <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-xl">
                   <Clock className="w-4 h-4 text-slate-400" />
                   <span className="text-slate-900 font-medium">
-                    {appUser?.updated_at ? format(new Date(appUser.updated_at), "d 'de' MMM, HH:mm", { locale: es }) : 'N/A'}
+                    {appUser?.updated_at
+                      ? format(new Date(appUser.updated_at), "d 'de' MMM, HH:mm", { locale: es })
+                      : 'N/A'}
                   </span>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
       </Card>
 
       {isCapturing && (
-        <PhotoCapture
-          onCapture={handleCapture}
-          onCancel={() => setIsCapturing(false)}
-        />
+        <PhotoCapture onCapture={handleCapture} onCancel={() => setIsCapturing(false)} />
       )}
     </div>
   )

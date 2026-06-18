@@ -18,9 +18,7 @@ function escapeCsvValue(value: string | number | null | undefined): string {
 
 function arrayToCsv(headers: string[], rows: CsvRow[]): string {
   const headerLine = headers.join(',')
-  const dataLines = rows.map((row) =>
-    headers.map((h) => escapeCsvValue(row[h])).join(',')
-  )
+  const dataLines = rows.map((row) => headers.map((h) => escapeCsvValue(row[h])).join(','))
   return [headerLine, ...dataLines].join('\n')
 }
 

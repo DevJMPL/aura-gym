@@ -67,9 +67,7 @@ export interface UseDateRangeReturn {
   setCustomRange: (from: string, to: string) => void
 }
 
-export function useDateRange(
-  defaultPreset: DateRangePreset = 'month'
-): UseDateRangeReturn {
+export function useDateRange(defaultPreset: DateRangePreset = 'month'): UseDateRangeReturn {
   const [preset, setPresetState] = useState<DateRangePreset>(defaultPreset)
   const [range, setRange] = useState<DateRange>(() => getRangeForPreset(defaultPreset))
 
