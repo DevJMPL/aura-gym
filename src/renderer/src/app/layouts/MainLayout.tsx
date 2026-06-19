@@ -12,6 +12,9 @@ import {
   ChevronRight,
   Info,
   Building2,
+  ShoppingCart,
+  Package,
+  Banknote,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTenant } from '../../contexts/TenantContext'
@@ -22,7 +25,10 @@ const getNavItems = () => [
   { to: '/members', icon: Users, label: 'Miembros' },
   { to: '/plans', icon: CreditCard, label: 'Planes' },
   { to: '/attendance', icon: CalendarCheck, label: 'Asistencia' },
+  { to: '/pos', icon: ShoppingCart, label: 'Punto de Venta' },
+  { to: '/inventory', icon: Package, label: 'Inventario' },
   { to: '/kiosk', icon: ScanLine, label: 'Kiosco' },
+  { to: '/finances', icon: Banknote, label: 'Finanzas', adminOnly: true },
   { to: '/reports', icon: BarChart3, label: 'Reportes', adminOnly: true },
   { to: '/settings', icon: Settings, label: 'Configuración', adminOnly: true },
   { to: '/developer', icon: Info, label: 'Soporte' },
