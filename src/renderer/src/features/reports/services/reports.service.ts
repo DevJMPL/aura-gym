@@ -41,36 +41,55 @@ export async function getDashboardSummary(
   tenantId: string,
   range: DateRange
 ): Promise<DashboardReportSummary> {
-  const [paymentsRes, attendanceRes, membersRes, membershipsRes] = await Promise.all([
-    // Revenue in range
-    supabase
-      .from('payments')
-      .select('amount, payment_date')
-      .eq('tenant_id', tenantId)
-      .gte('payment_date', range.from)
-      .lte('payment_date', `${range.to}T23:59:59`),
+  const [memPaymentsRes, salePaymentsRes, attendanceRes, membersRes, membershipsRes] =
+    await Promise.all([
+      // Membership Revenue in range
+      supabase
+        .from('membership_payments')
+        .select('amount, created_at, charge:membership_charges!inner(tenant_id)')
+        .eq('charge.tenant_id', tenantId)
+        .gte('created_at', range.from)
+        .lte('created_at', `${range.to}T23:59:59`),
 
-    // Attendances in range (valid only)
-    supabase
-      .from('attendance_records')
-      .select('check_in_date, check_in_at, access_result, status')
-      .eq('tenant_id', tenantId)
-      .gte('check_in_date', range.from)
-      .lte('check_in_date', range.to),
+      // POS Revenue in range
+      supabase
+        .from('sale_payments')
+        .select('amount, created_at, sale:sales!inner(tenant_id)')
+        .eq('sale.tenant_id', tenantId)
+        .gte('created_at', range.from)
+        .lte('created_at', `${range.to}T23:59:59`),
 
-    // Member counts (all)
-    supabase.from('members').select('status').eq('tenant_id', tenantId),
+      // Attendances in range (valid only)
+      supabase
+        .from('attendance_records')
+        .select('check_in_date, check_in_at, access_result, status')
+        .eq('tenant_id', tenantId)
+        .gte('check_in_date', range.from)
+        .lte('check_in_date', range.to),
 
-    // Memberships expiring soon or denied access
-    supabase.from('memberships').select('end_date, status').eq('tenant_id', tenantId),
-  ])
+      // Member counts (all)
+      supabase.from('members').select('status').eq('tenant_id', tenantId),
 
-  if (paymentsRes.error) throw paymentsRes.error
+      // Memberships expiring soon or denied access
+      supabase.from('memberships').select('end_date, status').eq('tenant_id', tenantId),
+    ])
+
+  if (memPaymentsRes.error) throw memPaymentsRes.error
+  if (salePaymentsRes.error) throw salePaymentsRes.error
   if (attendanceRes.error) throw attendanceRes.error
   if (membersRes.error) throw membersRes.error
   if (membershipsRes.error) throw membershipsRes.error
 
-  const payments = paymentsRes.data ?? []
+  const payments = [
+    ...(memPaymentsRes.data ?? []).map((p) => ({
+      amount: Number(p.amount),
+      payment_date: p.created_at,
+    })),
+    ...(salePaymentsRes.data ?? []).map((p) => ({
+      amount: Number(p.amount),
+      payment_date: p.created_at,
+    })),
+  ]
   const attendances = attendanceRes.data ?? []
   const members = membersRes.data ?? []
   const memberships = membershipsRes.data ?? []
@@ -259,40 +278,76 @@ export async function getFinancialReport(
   tenantId: string,
   range: DateRange
 ): Promise<FinancialReportData> {
-  const { data, error } = await supabase
-    .from('payments')
-    .select(
+  const [memPaymentsRes, salePaymentsRes] = await Promise.all([
+    supabase
+      .from('membership_payments')
+      .select(
+        `
+        id, amount, payment_method, created_at,
+        charge:membership_charges!inner(
+          tenant_id,
+          plan:membership_plans(name),
+          member:members(full_name, member_code),
+          discount_total
+        )
       `
-      id,
-      amount,
-      payment_method,
-      concept,
-      payment_date,
-      member:members(full_name, member_code),
-      membership:memberships(plan_id, plan:membership_plans(name), discount_type, discount_value)
-    `
-    )
-    .eq('tenant_id', tenantId)
-    .gte('payment_date', range.from)
-    .lte('payment_date', `${range.to}T23:59:59`)
-    .order('payment_date', { ascending: true })
+      )
+      .eq('charge.tenant_id', tenantId)
+      .gte('created_at', range.from)
+      .lte('created_at', `${range.to}T23:59:59`)
+      .order('created_at', { ascending: true }),
 
-  if (error) throw error
-  const payments = data ?? []
+    supabase
+      .from('sale_payments')
+      .select(
+        `
+        id, amount, payment_method, created_at,
+        sale:sales!inner(
+          tenant_id,
+          sale_number,
+          member:members(full_name, member_code),
+          discount_total
+        )
+      `
+      )
+      .eq('sale.tenant_id', tenantId)
+      .gte('created_at', range.from)
+      .lte('created_at', `${range.to}T23:59:59`)
+      .order('created_at', { ascending: true }),
+  ])
+
+  if (memPaymentsRes.error) throw memPaymentsRes.error
+  if (salePaymentsRes.error) throw salePaymentsRes.error
+
+  const payments = [
+    ...(memPaymentsRes.data ?? []).map((p) => ({
+      ...p,
+      concept: 'Pago de Membresía / Plan',
+      isMembership: true,
+      payment_date: p.created_at,
+    })),
+    ...(salePaymentsRes.data ?? []).map((p) => {
+      const saleData = Array.isArray(p.sale) ? p.sale[0] : p.sale
+      return {
+        ...p,
+        concept: `Venta POS #${(saleData as any)?.sale_number ?? ''}`,
+        isMembership: false,
+        payment_date: p.created_at,
+      }
+    }),
+  ].sort((a, b) => new Date(a.payment_date).getTime() - new Date(b.payment_date).getTime())
 
   const totalRevenue = sumField(payments, 'amount')
   const avgTicket = payments.length > 0 ? totalRevenue / payments.length : 0
 
-  // Discount calculation
   let totalDiscounts = 0
   for (const p of payments) {
-    const mem = Array.isArray(p.membership) ? p.membership[0] : p.membership
-    if (mem?.discount_type && mem.discount_value) {
-      if (mem.discount_type === 'percentage') {
-        totalDiscounts += (totalRevenue * mem.discount_value) / 100
-      } else {
-        totalDiscounts += mem.discount_value
-      }
+    if (p.isMembership) {
+      const chargeData = Array.isArray((p as any).charge) ? (p as any).charge[0] : (p as any).charge
+      totalDiscounts += Number((chargeData as any)?.discount_total) || 0
+    } else {
+      const saleData = Array.isArray((p as any).sale) ? (p as any).sale[0] : (p as any).sale
+      totalDiscounts += Number((saleData as any)?.discount_total) || 0
     }
   }
 
@@ -305,23 +360,26 @@ export async function getFinancialReport(
   const byWeek = groupByWeek(payments, 'payment_date', (items) => sumField(items, 'amount'))
   const byMonth = groupByMonth(payments, 'payment_date', (items) => sumField(items, 'amount'))
 
-  // By plan
+  // By plan (only for memberships)
   const planMap = new Map<string, { name: string; revenue: number; count: number }>()
   for (const p of payments) {
-    const mem = Array.isArray(p.membership) ? p.membership[0] : p.membership
-    const planData = Array.isArray(mem?.plan) ? mem?.plan[0] : mem?.plan
+    if (!p.isMembership) continue
+
+    const chargeData = Array.isArray((p as any).charge) ? (p as any).charge[0] : (p as any).charge
+    const planData = Array.isArray((chargeData as any)?.plan)
+      ? (chargeData as any)?.plan[0]
+      : (chargeData as any)?.plan
     const planName = (planData as { name?: string })?.name ?? 'Sin plan'
-    const planId = mem?.plan_id ?? 'no_plan'
-    const existing = planMap.get(planId) ?? { name: planName, revenue: 0, count: 0 }
+    const existing = planMap.get(planName) ?? { name: planName, revenue: 0, count: 0 }
     existing.revenue += Number(p.amount) || 0
     existing.count++
-    planMap.set(planId, existing)
+    planMap.set(planName, existing)
   }
 
   const byPlan: RevenueByPlan[] = Array.from(planMap.entries())
     .sort(([, a], [, b]) => b.revenue - a.revenue)
-    .map(([planId, { name, revenue, count }]) => ({
-      planId,
+    .map(([planName, { name, revenue, count }]) => ({
+      planId: planName,
       planName: name,
       revenue,
       count,
@@ -349,14 +407,23 @@ export async function getFinancialReport(
 
   // Payment rows
   const paymentRows: PaymentRow[] = payments.map((p) => {
-    const memberData = Array.isArray(p.member) ? p.member[0] : p.member
+    let memberData
+    if (p.isMembership) {
+      const chargeData = Array.isArray((p as any).charge) ? (p as any).charge[0] : (p as any).charge
+      memberData = (chargeData as any)?.member
+    } else {
+      const saleData = Array.isArray((p as any).sale) ? (p as any).sale[0] : (p as any).sale
+      memberData = (saleData as any)?.member
+    }
+    memberData = Array.isArray(memberData) ? memberData[0] : memberData
+
     return {
       id: p.id,
       date: p.payment_date,
       memberName: (memberData as { full_name?: string })?.full_name ?? '—',
       memberCode: (memberData as { member_code?: string })?.member_code ?? '—',
       concept: p.concept,
-      paymentMethod: p.payment_method,
+      paymentMethod: p.payment_method as any,
       amount: Number(p.amount),
     }
   })
