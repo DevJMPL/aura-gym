@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, CreditCard, Calendar, Tag } from 'lucide-react'
 import { planService } from '../../plans/services/planService'
 import { membershipService } from '../services/membershipService'
+import { membershipPaymentsService } from '../../members/services/membershipPaymentsService'
 import { useTenant } from '../../../contexts/TenantContext'
 import type { MembershipPlan } from '../../../types/database'
 import { format } from 'date-fns'
@@ -27,6 +28,8 @@ export function AssignMembershipModal({
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'transfer'>('cash')
   const [notes, setNotes] = useState('')
+  const [amountPaidStr, setAmountPaidStr] = useState('')
+  const [dueDate, setDueDate] = useState('')
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -59,11 +62,22 @@ export function AssignMembershipModal({
     e.preventDefault()
     if (!selectedPlan || !activeTenantId) return
 
+    const parsedAmountPaid = amountPaidStr === '' ? finalPrice : Number(amountPaidStr)
+    if (parsedAmountPaid > finalPrice) {
+      setError('El monto pagado no puede ser mayor al total.')
+      return
+    }
+
+    if (parsedAmountPaid < finalPrice && !dueDate) {
+      setError('Debe especificar una fecha de compromiso para el adeudo restante.')
+      return
+    }
+
     setError(null)
     setIsSubmitting(true)
 
     try {
-      await membershipService.create(
+      const membership = await membershipService.create(
         activeTenantId,
         {
           member_id: memberId,
@@ -78,6 +92,23 @@ export function AssignMembershipModal({
         discountType,
         discountValue
       )
+
+      // Create the charge and initial payment
+      const discountTotal = selectedPlan.base_price - finalPrice
+      await membershipPaymentsService.createCharge({
+        tenant_id: activeTenantId,
+        member_id: memberId,
+        plan_id: selectedPlan.id,
+        membership_id: membership.id,
+        subtotal: selectedPlan.base_price,
+        discount_total: discountTotal > 0 ? discountTotal : 0,
+        total: finalPrice,
+        amount_paid: parsedAmountPaid,
+        payment_method: parsedAmountPaid > 0 ? paymentMethod : undefined,
+        due_date:
+          parsedAmountPaid < finalPrice ? new Date(dueDate + 'T23:59:59').toISOString() : undefined,
+        notes: notes || undefined,
+      })
 
       onSuccess()
       onClose()
@@ -242,11 +273,46 @@ export function AssignMembershipModal({
                     )}
                   </div>
 
-                  <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
+                  <div className="pt-4 border-t border-slate-200 flex justify-between items-center mb-4">
                     <div className="text-sm font-medium text-slate-500">Total a Pagar</div>
                     <div className="text-2xl font-black text-slate-900">
                       ${finalPrice.toFixed(2)}
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Monto Pagado (Opcional)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder={`$${finalPrice.toFixed(2)}`}
+                        value={amountPaidStr}
+                        onChange={(e) => setAmountPaidStr(e.target.value)}
+                        className="block w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        Si deja vacío, se asume pago completo.
+                      </p>
+                    </div>
+                    {amountPaidStr !== '' && Number(amountPaidStr) < finalPrice && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                          Fecha Compromiso
+                        </label>
+                        <input
+                          type="date"
+                          required
+                          min={format(new Date(), 'yyyy-MM-dd')}
+                          value={dueDate}
+                          onChange={(e) => setDueDate(e.target.value)}
+                          className="block w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 

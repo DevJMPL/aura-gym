@@ -164,21 +164,41 @@ export interface MemberTrainingDay {
   created_at: string
 }
 
-export interface Payment {
+export interface MembershipCharge {
   id: string
   tenant_id: string
   member_id: string
+  plan_id: string
   membership_id: string | null
-  amount: number
-  payment_method: PaymentMethod | null
-  concept: string
-  payment_date: string
-  received_by: string | null
+  subtotal: number
+  discount_total: number
+  total: number
+  amount_paid: number
+  balance_due: number
+  payment_status: PaymentStatus
+  status: 'active' | 'cancelled'
+  due_date: string | null
   notes: string | null
+  created_by: string | null
   created_at: string
+  updated_at: string
   // Joined fields
   member?: Member
+  plan?: MembershipPlan
   membership?: Membership
+  payments?: MembershipPayment[]
+}
+
+export interface MembershipPayment {
+  id: string
+  charge_id: string
+  amount: number
+  payment_method: PaymentMethod | null
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  // Joined fields
+  charge?: MembershipCharge
 }
 
 export interface UserLoginHistory {
@@ -281,4 +301,116 @@ export interface GymSettingsFormData {
 export interface LoginFormData {
   email: string
   password: string
+}
+
+// ============================================
+// POS Types
+// ============================================
+
+export type PaymentStatus = 'paid' | 'partially_paid' | 'pending' | 'cancelled'
+export type SaleStatus = 'completed' | 'cancelled'
+export type MovementType =
+  | 'initial_stock'
+  | 'purchase'
+  | 'sale'
+  | 'adjustment_in'
+  | 'adjustment_out'
+  | 'return'
+  | 'cancellation'
+
+export interface ProductCategory {
+  id: string
+  tenant_id: string
+  name: string
+  description: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Product {
+  id: string
+  tenant_id: string
+  category_id: string | null
+  name: string
+  description: string | null
+  sku: string | null
+  barcode: string | null
+  unit: string
+  sale_price: number
+  purchase_cost: number
+  current_stock: number
+  minimum_stock: number
+  allow_negative_stock: boolean
+  image_url: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  // Joined fields
+  category?: ProductCategory
+}
+
+export interface Sale {
+  id: string
+  tenant_id: string
+  sale_number: number
+  member_id: string | null
+  external_customer_name: string | null
+  external_customer_phone: string | null
+  subtotal: number
+  discount_total: number
+  total: number
+  amount_paid: number
+  balance_due: number
+  payment_status: PaymentStatus
+  status: SaleStatus
+  due_date: string | null
+  notes: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+  // Joined fields
+  member?: Member
+  items?: SaleItem[]
+  payments?: SalePayment[]
+}
+
+export interface SaleItem {
+  id: string
+  sale_id: string
+  product_id: string | null
+  product_name_snapshot: string
+  quantity: number
+  unit_price: number
+  subtotal: number
+  created_at: string
+  // Joined fields
+  product?: Product
+}
+
+export interface SalePayment {
+  id: string
+  sale_id: string
+  amount: number
+  payment_method: PaymentMethod | null
+  notes: string | null
+  created_by: string | null
+  created_at: string
+}
+
+export interface InventoryMovement {
+  id: string
+  tenant_id: string
+  product_id: string
+  movement_type: MovementType
+  quantity: number
+  previous_stock: number
+  new_stock: number
+  reason: string | null
+  related_sale_id: string | null
+  created_by: string | null
+  created_at: string
+  // Joined fields
+  product?: Product
+  sale?: Sale
 }

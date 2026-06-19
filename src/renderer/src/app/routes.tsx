@@ -24,12 +24,21 @@ import { PlansPage } from './pages/PlansPage'
 
 import { AttendanceLogPage } from './pages/AttendanceLogPage'
 
+import { FinancesPage } from './pages/FinancesPage'
+
 import { ReportsLayout } from '../features/reports/pages/ReportsLayout'
 import { ReportsDashboardPage } from '../features/reports/pages/ReportsDashboardPage'
 import { FinancialReportPage } from '../features/reports/pages/FinancialReportPage'
 import { AttendanceReportPage } from '../features/reports/pages/AttendanceReportPage'
 import { MembershipReportPage } from '../features/reports/pages/MembershipReportPage'
 import { MembersReportPage } from '../features/reports/pages/MembersReportPage'
+
+import { POSPage } from '../features/pos/pages/POSPage'
+import { InventoryLayout } from '../features/pos/pages/InventoryLayout'
+import { ProductsTab } from '../features/pos/pages/ProductsTab'
+import { CategoriesTab } from '../features/pos/pages/CategoriesTab'
+import { MovementsTab } from '../features/pos/pages/MovementsTab'
+import { SalesTab } from '../features/pos/pages/SalesTab'
 
 import { SettingsLayout } from '../features/settings/pages/SettingsLayout'
 import { ProfilePage } from './pages/ProfilePage'
@@ -148,6 +157,14 @@ export function AppRoutes() {
         />
         <Route path="/attendance" element={<AttendanceLogPage />} />
         <Route
+          path="/finances"
+          element={
+            <AdminRoute>
+              <FinancesPage />
+            </AdminRoute>
+          }
+        />
+        <Route
           path="/reports"
           element={
             <AdminRoute>
@@ -161,6 +178,24 @@ export function AppRoutes() {
           <Route path="memberships" element={<MembershipReportPage />} />
           <Route path="members" element={<MembersReportPage />} />
         </Route>
+
+        <Route path="/pos" element={<POSPage />} />
+
+        <Route
+          path="/inventory"
+          element={
+            <AdminRoute>
+              <InventoryLayout />
+            </AdminRoute>
+          }
+        >
+          <Route index element={<Navigate to="products" replace />} />
+          <Route path="products" element={<ProductsTab />} />
+          <Route path="categories" element={<CategoriesTab />} />
+          <Route path="movements" element={<MovementsTab />} />
+          <Route path="sales" element={<SalesTab />} />
+        </Route>
+
         <Route
           path="/settings"
           element={

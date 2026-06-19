@@ -7,9 +7,11 @@ import { MemberProfile } from '../../features/members/components/MemberProfile'
 import { AssignMembershipModal } from '../../features/memberships/components/AssignMembershipModal'
 import { attendanceService } from '../../features/attendance/services/attendanceService'
 import { useTenant } from '../../contexts/TenantContext'
-import type { Member, Membership, AttendanceRecord } from '../../types/database'
+import { membershipPaymentsService } from '../../features/members/services/membershipPaymentsService'
+import { RegisterPaymentModal } from '../../features/members/components/RegisterPaymentModal'
+import type { Member, Membership, AttendanceRecord, MembershipCharge } from '../../types/database'
 import { LoadingState, AlertBanner, Card, Button } from '../../components/ui'
-import { PlusCircle, Calendar } from 'lucide-react'
+import { PlusCircle, Calendar, DollarSign } from 'lucide-react'
 import { format } from 'date-fns'
 import { es, enUS } from 'date-fns/locale'
 export function MemberDetailPage() {
@@ -21,24 +23,28 @@ export function MemberDetailPage() {
   const [activeMembership, setActiveMembership] = useState<Membership | null>(null)
   const [trainingDays, setTrainingDays] = useState<number[]>([])
   const [attendanceHistory, setAttendanceHistory] = useState<AttendanceRecord[]>([])
+  const [charges, setCharges] = useState<MembershipCharge[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
+  const [paymentModalCharge, setPaymentModalCharge] = useState<MembershipCharge | null>(null)
   useEffect(() => {
     async function fetchMember() {
       if (!id || !activeTenantId) return
       try {
         setIsLoading(true)
-        const [memberData, membershipData, daysData, historyData] = await Promise.all([
+        const [memberData, membershipData, daysData, historyData, chargesData] = await Promise.all([
           memberService.getById(activeTenantId, id),
           membershipService.getActiveMembership(activeTenantId, id),
           memberService.getTrainingDays(activeTenantId, id),
           attendanceService.getMemberHistory(activeTenantId, id),
+          membershipPaymentsService.getMemberCharges(activeTenantId, id),
         ])
         setMember(memberData)
         setActiveMembership(membershipData)
         setTrainingDays(daysData)
         setAttendanceHistory(historyData)
+        setCharges(chargesData)
       } catch (err: unknown) {
         setError(err instanceof Error ? err : new Error(String(err)))
       } finally {
@@ -55,12 +61,14 @@ export function MemberDetailPage() {
         membershipService.getActiveMembership(activeTenantId, id),
         memberService.getTrainingDays(activeTenantId, id),
         attendanceService.getMemberHistory(activeTenantId, id),
+        membershipPaymentsService.getMemberCharges(activeTenantId, id),
       ])
-        .then(([memberData, membershipData, daysData, historyData]) => {
+        .then(([memberData, membershipData, daysData, historyData, chargesData]) => {
           setMember(memberData)
           setActiveMembership(membershipData)
           setTrainingDays(daysData)
           setAttendanceHistory(historyData)
+          setCharges(chargesData)
         })
         .finally(() => setIsLoading(false))
     }
@@ -189,10 +197,89 @@ export function MemberDetailPage() {
         </Card>
       </div>
 
+      <Card title={'Historial Financiero'}>
+        {charges.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-600">
+              <thead className="bg-slate-50 text-slate-500 uppercase">
+                <tr>
+                  <th className="px-4 py-3 font-medium rounded-l-xl">Fecha</th>
+                  <th className="px-4 py-3 font-medium">Plan</th>
+                  <th className="px-4 py-3 font-medium">Total</th>
+                  <th className="px-4 py-3 font-medium">Pagado</th>
+                  <th className="px-4 py-3 font-medium">Adeudo</th>
+                  <th className="px-4 py-3 font-medium">Estado</th>
+                  <th className="px-4 py-3 font-medium rounded-r-xl text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {charges.map((charge) => (
+                  <tr key={charge.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {format(new Date(charge.created_at), 'dd/MM/yyyy')}
+                    </td>
+                    <td className="px-4 py-4 font-medium text-slate-900">
+                      {(charge.plan as any)?.name ?? 'Desconocido'}
+                    </td>
+                    <td className="px-4 py-4">${Number(charge.total).toFixed(2)}</td>
+                    <td className="px-4 py-4 text-green-600">
+                      ${Number(charge.amount_paid).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-4 font-bold text-red-600">
+                      ${Number(charge.balance_due).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span
+                        className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                          charge.payment_status === 'paid'
+                            ? 'bg-green-100 text-green-700'
+                            : charge.payment_status === 'partially_paid'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-red-100 text-red-700'
+                        }`}
+                      >
+                        {charge.payment_status === 'paid'
+                          ? 'Pagado'
+                          : charge.payment_status === 'partially_paid'
+                            ? 'Parcial'
+                            : 'Pendiente'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      {charge.balance_due > 0 && charge.status === 'active' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setPaymentModalCharge(charge)}
+                        >
+                          Abonar
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="py-8 text-center text-slate-500 flex flex-col items-center">
+            <DollarSign className="w-12 h-12 text-slate-300 mb-3" />
+            <p>Este miembro no tiene cargos ni pagos registrados.</p>
+          </div>
+        )}
+      </Card>
+
       <AssignMembershipModal
         isOpen={isAssignModalOpen}
         onClose={() => setIsAssignModalOpen(false)}
         memberId={member.id}
+        onSuccess={handleRefresh}
+      />
+
+      <RegisterPaymentModal
+        isOpen={!!paymentModalCharge}
+        onClose={() => setPaymentModalCharge(null)}
+        charge={paymentModalCharge}
         onSuccess={handleRefresh}
       />
     </div>
