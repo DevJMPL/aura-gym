@@ -23,10 +23,10 @@ import logoImage from '../../assets/logo.jpg'
 const getNavItems = () => [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/members', icon: Users, label: 'Miembros' },
-  { to: '/plans', icon: CreditCard, label: 'Planes' },
+  { to: '/plans', icon: CreditCard, label: 'Planes', adminOnly: true },
   { to: '/attendance', icon: CalendarCheck, label: 'Asistencia' },
   { to: '/pos', icon: ShoppingCart, label: 'Punto de Venta' },
-  { to: '/inventory', icon: Package, label: 'Inventario' },
+  { to: '/inventory', icon: Package, label: 'Inventario', adminOnly: true },
   { to: '/kiosk', icon: ScanLine, label: 'Kiosco' },
   { to: '/finances', icon: Banknote, label: 'Finanzas', adminOnly: true },
   { to: '/reports', icon: BarChart3, label: 'Reportes', adminOnly: true },
