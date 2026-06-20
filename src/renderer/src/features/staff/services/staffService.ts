@@ -7,21 +7,25 @@ export interface CreateStaffData {
   password: string
   fullName: string
   photoUrl?: string
+  tenantId: string
 }
 
 export const staffService = {
   /**
    * Obtiene la lista de empleados (rol: staff)
    */
-  async getStaff() {
+  async getStaff(tenantId: string) {
     const { data, error } = await supabase
-      .from('app_users')
-      .select('*')
-      .eq('role', 'staff')
+      .from('tenant_users')
+      .select(`
+        user:user_id (*)
+      `)
+      .eq('tenant_id', tenantId)
+      .ilike('role', 'staff')
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data as AppUser[]
+    return data.map((d: any) => d.user) as AppUser[]
   },
 
   /**
@@ -60,6 +64,15 @@ export const staffService = {
       .single()
 
     if (fetchError) throw fetchError
+
+    // Link user to the active tenant
+    const { error: tenantError } = await supabase.from('tenant_users').insert({
+      tenant_id: data.tenantId,
+      user_id: userData.id,
+      role: 'staff',
+    })
+
+    if (tenantError) throw tenantError
 
     return userData as AppUser
   },

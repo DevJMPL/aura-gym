@@ -2,19 +2,22 @@ import { useState, useEffect } from 'react'
 import { Briefcase, Plus, Shield, Search, Mail, Calendar } from 'lucide-react'
 import { staffService } from '../../features/staff/services/staffService'
 import { StaffModal } from '../../features/staff/components/StaffModal'
+import { useTenant } from '../../contexts/TenantContext'
 import type { AppUser } from '../../types/database'
 
 export function StaffPage() {
+  const { activeTenantId } = useTenant()
   const [staff, setStaff] = useState<AppUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
 
   const loadStaff = async () => {
+    if (!activeTenantId) return
     try {
       setIsLoading(true)
-      const data = await staffService.getStaff()
-      setStaff(data)
+      const data = await staffService.getStaff(activeTenantId)
+      setStaff(data || [])
     } catch (error) {
       console.error('Error loading staff:', error)
     } finally {
@@ -24,7 +27,7 @@ export function StaffPage() {
 
   useEffect(() => {
     loadStaff()
-  }, [])
+  }, [activeTenantId])
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
     try {

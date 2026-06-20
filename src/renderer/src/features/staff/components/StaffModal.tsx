@@ -3,6 +3,7 @@ import { X, UserPlus, Mail, Lock, User as UserIcon, Camera } from 'lucide-react'
 import { staffService } from '../services/staffService'
 import { PhotoCapture } from '../../../components/ui'
 import { storageService } from '../../../lib/supabase/storageService'
+import { useTenant } from '../../../contexts/TenantContext'
 
 interface StaffModalProps {
   isOpen: boolean
@@ -11,6 +12,7 @@ interface StaffModalProps {
 }
 
 export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
+  const { activeTenantId } = useTenant()
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -35,8 +37,9 @@ export function StaffModal({ isOpen, onClose, onSuccess }: StaffModalProps) {
         const fileName = `staff-${Date.now()}.jpg`
         finalPhotoUrl = await storageService.uploadAvatar(base64Photo, fileName)
       }
+      if (!activeTenantId) throw new Error('No active tenant')
 
-      await staffService.createStaff({ ...formData, photoUrl: finalPhotoUrl })
+      await staffService.createStaff({ ...formData, photoUrl: finalPhotoUrl, tenantId: activeTenantId })
       setFormData({ fullName: '', email: '', password: '', photoUrl: '' })
       setBase64Photo(null)
       onSuccess()
